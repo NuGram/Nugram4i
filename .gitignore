@@ -65,6 +65,7 @@ xcodeproj.bazelrc
 build-input/*
 **/*.pyc
 *.pyc
+build-system/*.local.json
 submodules/OpusBinding/SharedHeaders/*
 submodules/FFMpegBinding/SharedHeaders/*
 submodules/OpenSSLEncryptionProvider/SharedHeaders/*
