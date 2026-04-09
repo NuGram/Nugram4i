@@ -9,6 +9,14 @@ SOURCE_DIR="$2"
 BUILD_DIR=$(echo "$(cd "$(dirname "$3")"; pwd -P)/$(basename "$3")")
 OPENSSL_DIR="$4"
 
+export PATH="/usr/sbin:/usr/local/bin:/opt/homebrew/bin:$PATH"
+
+if command -v sysctl >/dev/null 2>&1; then
+  JOB_COUNT="$(sysctl -n hw.ncpu)"
+else
+  JOB_COUNT=1
+fi
+
 openssl_crypto_library="${OPENSSL_DIR}/lib/libcrypto.a"
 options=""
 options="$options -DOPENSSL_FOUND=1"
@@ -23,7 +31,7 @@ cd "$BUILD_DIR"
 mkdir native-build
 cd native-build
 cmake -DTD_GENERATE_SOURCE_FILES=ON ../td
-cmake --build . -- -j$(sysctl -n hw.ncpu)
+cmake --build . -- -j"${JOB_COUNT}"
 cd ..
 
 if [ "$ARCH" = "arm64" ]; then
@@ -49,4 +57,4 @@ echo "set(CMAKE_SYSTEM_PROCESSOR aarch64)" >> toolchain.cmake
 echo "set(CMAKE_C_COMPILER $(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang)" >> toolchain.cmake
 
 cmake -G"Unix Makefiles" -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake -DCMAKE_OSX_SYSROOT=${IOS_SYSROOT[0]} ../td $options
-make tde2e -j$(sysctl -n hw.ncpu)
+make tde2e -j"${JOB_COUNT}"
