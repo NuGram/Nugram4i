@@ -6,6 +6,7 @@ import Postbox
 import TelegramCore
 import SwiftSignalKit
 import TelegramPresentationData
+import TelegramUIPreferences
 import AccountContext
 import AppBundle
 import ChatPresentationInterfaceState
@@ -323,7 +324,7 @@ public final class ChatMessageSelectionInputPanelNode: ChatInputPanelNode {
         if let _ = self.presentationInterfaceState?.renderedPeer?.peer as? TelegramSecretChat {
             return
         }
-        if let actions = self.actions, actions.isCopyProtected {
+        if let actions = self.actions, actions.isCopyProtected && (self.peerMedia || self.context?.sharedContext.immediateExperimentalUISettings.nugramRestrictedForward != true) {
             self.interfaceInteraction?.displayCopyProtectionTip(self.forwardButton, false)
         } else if !self.forwardButton.isImplicitlyDisabled {
             self.interfaceInteraction?.forwardSelectedMessages()

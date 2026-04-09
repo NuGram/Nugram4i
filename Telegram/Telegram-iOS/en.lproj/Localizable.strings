@@ -16182,5 +16182,7 @@ Error: %8$@";
 "Nugram.ComingSoon" = "Coming soon";
 "Nugram.ZalgoRemover" = "Zalgo Remover";
 "Nugram.ZalgoRemoverInfo" = "Strip excessive combining marks from incoming text.";
+"Nugram.RestrictedForward" = "Restricted Forwarding";
+"Nugram.RestrictedForwardInfo" = "Resend protected messages as new outgoing messages when forwarding is blocked.";
 
 "Stars.Intro.Transaction.Commission.Title" = "%@ commission";

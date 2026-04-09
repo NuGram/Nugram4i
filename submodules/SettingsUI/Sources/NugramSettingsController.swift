@@ -12,11 +12,13 @@ private final class NugramSettingsControllerArguments {
     let openGeneral: () -> Void
     let openAppearance: () -> Void
     let updateZalgoRemover: (Bool) -> Void
+    let updateRestrictedForward: (Bool) -> Void
     
-    init(openGeneral: @escaping () -> Void, openAppearance: @escaping () -> Void, updateZalgoRemover: @escaping (Bool) -> Void) {
+    init(openGeneral: @escaping () -> Void, openAppearance: @escaping () -> Void, updateZalgoRemover: @escaping (Bool) -> Void, updateRestrictedForward: @escaping (Bool) -> Void) {
         self.openGeneral = openGeneral
         self.openAppearance = openAppearance
         self.updateZalgoRemover = updateZalgoRemover
+        self.updateRestrictedForward = updateRestrictedForward
     }
 }
 
@@ -32,12 +34,14 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
     case comingSoon
     case zalgoRemover(Bool)
     case zalgoRemoverInfo
+    case restrictedForward(Bool)
+    case restrictedForwardInfo
     
     var section: ItemListSectionId {
         switch self {
         case .general, .appearance, .supportInfo:
             return NugramSettingsSection.categories.rawValue
-        case .comingSoon, .zalgoRemover, .zalgoRemoverInfo:
+        case .comingSoon, .zalgoRemover, .zalgoRemoverInfo, .restrictedForward, .restrictedForwardInfo:
             return NugramSettingsSection.general.rawValue
         }
     }
@@ -56,6 +60,10 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
             return 4
         case .zalgoRemoverInfo:
             return 5
+        case .restrictedForward:
+            return 6
+        case .restrictedForwardInfo:
+            return 7
         }
     }
     
@@ -84,6 +92,12 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
             })
         case .zalgoRemoverInfo:
             return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_ZalgoRemoverInfo), sectionId: self.section)
+        case let .restrictedForward(value):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: presentationData.strings.Nugram_RestrictedForward, value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateRestrictedForward(value)
+            })
+        case .restrictedForwardInfo:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_RestrictedForwardInfo), sectionId: self.section)
         }
     }
 }
@@ -105,7 +119,9 @@ private func nugramSettingsControllerEntries(mode: NugramSettingsMode, settings:
     case .general:
         return [
             .zalgoRemover(settings.nugramZalgoRemover),
-            .zalgoRemoverInfo
+            .zalgoRemoverInfo,
+            .restrictedForward(settings.nugramRestrictedForward),
+            .restrictedForwardInfo
         ]
     case .appearance:
         return [
@@ -128,6 +144,13 @@ private func nugramSettingsController(context: AccountContext, mode: NugramSetti
             let _ = updateExperimentalUISettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
                 var settings = settings
                 settings.nugramZalgoRemover = value
+                return settings
+            }).start()
+        },
+        updateRestrictedForward: { value in
+            let _ = updateExperimentalUISettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.nugramRestrictedForward = value
                 return settings
             }).start()
         }

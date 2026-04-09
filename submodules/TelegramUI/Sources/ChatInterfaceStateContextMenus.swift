@@ -1836,8 +1836,9 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
             })))
         }
 
-        if data.messageActions.options.contains(.forward) {
-            if !isCopyProtected {
+        let canNugramRestrictedForward = nugramRestrictedForwardEnabled(context: context) && !message.containsSecretMedia && message.id.peerId.namespace != Namespaces.Peer.SecretChat && isCopyProtected
+        if data.messageActions.options.contains(.forward) || canNugramRestrictedForward {
+            if !isCopyProtected || canNugramRestrictedForward {
                 actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuForward, icon: { theme in
                     return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Forward"), color: theme.actionSheet.primaryTextColor)
                 }, action: { _, f in

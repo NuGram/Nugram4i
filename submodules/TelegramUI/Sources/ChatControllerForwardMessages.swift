@@ -14,6 +14,142 @@ import PremiumUI
 import ReactionSelectionNode
 import TopMessageReactions
 import ChatMessagePaymentAlertController
+import TelegramUIPreferences
+
+func nugramRestrictedForwardEnabled(context: AccountContext) -> Bool {
+    return context.sharedContext.immediateExperimentalUISettings.nugramRestrictedForward
+}
+
+func nugramNeedsRestrictedForward(_ message: Message) -> Bool {
+    if message.isCopyProtected() {
+        return true
+    }
+    if message.id.peerId.namespace == Namespaces.Peer.SecretChat {
+        return true
+    }
+    if message.minAutoremoveOrClearTimeout != nil {
+        return true
+    }
+    return false
+}
+
+func nugramRestrictedForwardMessage(_ message: Message, threadId: Int64?, hideCaptions: Bool) -> EnqueueMessage? {
+    var mediaReference: AnyMediaReference?
+    for media in message.media {
+        if media is TelegramMediaImage || media is TelegramMediaFile || media is TelegramMediaWebpage || media is TelegramMediaMap || media is TelegramMediaContact || media is TelegramMediaDice {
+            mediaReference = .standalone(media: media)
+            break
+        }
+    }
+
+    var filteredAttributes: [MessageAttribute] = []
+    var bubbleUpEmojiOrStickersets: [ItemCollectionId] = []
+    for attribute in message.attributes {
+        if let attribute = attribute as? OutgoingMessageInfoAttribute {
+            bubbleUpEmojiOrStickersets = attribute.bubbleUpEmojiOrStickersets
+        } else if attribute is ReplyMessageAttribute || attribute is ReplyStoryAttribute || attribute is ForwardSourceInfoAttribute || attribute is SourceReferenceMessageAttribute || attribute is SendAsMessageAttribute || attribute is InlineBotMessageAttribute || attribute is InlineBusinessBotMessageAttribute || attribute is PaidStarsMessageAttribute {
+        } else {
+            filteredAttributes.append(attribute)
+        }
+    }
+
+    let text: String
+    let attributes: [MessageAttribute]
+    if hideCaptions && mediaReference != nil {
+        text = ""
+        attributes = filteredAttributes.filter { !($0 is TextEntitiesMessageAttribute) }
+    } else {
+        text = message.text
+        attributes = filteredAttributes
+    }
+
+    if text.isEmpty && mediaReference == nil {
+        return nil
+    }
+
+    return .message(text: text, attributes: attributes, inlineStickers: [:], mediaReference: mediaReference, threadId: threadId, replyToMessageId: nil, replyToStoryId: nil, localGroupingKey: message.groupingKey, correlationId: nil, bubbleUpEmojiOrStickersets: bubbleUpEmojiOrStickersets)
+}
+
+func nugramForwardEnqueueMessage(_ message: Message, threadId: Int64?, attributes: [MessageAttribute], restrictedForwardEnabled: Bool, forceRestricted: Bool = false, hideCaptions: Bool) -> EnqueueMessage {
+    if restrictedForwardEnabled && (forceRestricted || nugramNeedsRestrictedForward(message)), let restrictedMessage = nugramRestrictedForwardMessage(message, threadId: threadId, hideCaptions: hideCaptions) {
+        return restrictedMessage
+    }
+    return .forward(source: message.id, threadId: threadId, grouping: .auto, attributes: attributes, correlationId: nil)
+}
+
+private func nugramLocalMediaReference(account: Account, sourceMessage: Message, mediaReference: AnyMediaReference) -> Signal<AnyMediaReference, NoError> {
+    if let file = mediaReference.media as? TelegramMediaFile {
+        if file.resource is LocalFileReferenceMediaResource || file.resource is LocalFileMediaResource {
+            return .single(mediaReference)
+        }
+
+        let sourceReference = AnyMediaReference.message(message: MessageReference(sourceMessage), media: file)
+        return Signal<MediaResourceData, NoError> { subscriber in
+            let fetchDisposable = fetchedMediaResource(mediaBox: account.postbox.mediaBox, userLocation: .peer(sourceMessage.id.peerId), userContentType: MediaResourceUserContentType(file: file), reference: sourceReference.resourceReference(file.resource)).start()
+            let dataDisposable = account.postbox.mediaBox.resourceData(file.resource, option: .complete(waitUntilFetchStatus: true)).start(next: { data in
+                if data.complete {
+                    subscriber.putNext(data)
+                    subscriber.putCompletion()
+                }
+            })
+            return ActionDisposable {
+                fetchDisposable.dispose()
+                dataDisposable.dispose()
+            }
+        }
+        |> take(1)
+        |> map { data -> AnyMediaReference in
+            let id = Int64.random(in: Int64.min ... Int64.max)
+            let resource = LocalFileReferenceMediaResource(localFilePath: data.path, randomId: id, size: data.size)
+            let updatedFile = TelegramMediaFile(fileId: MediaId(namespace: Namespaces.Media.LocalFile, id: id), partialReference: nil, resource: resource, previewRepresentations: file.previewRepresentations, videoThumbnails: file.videoThumbnails, videoCover: file.videoCover, immediateThumbnailData: file.immediateThumbnailData, mimeType: file.mimeType, size: data.size, attributes: file.attributes, alternativeRepresentations: file.alternativeRepresentations)
+            return .standalone(media: updatedFile)
+        }
+    } else if let image = mediaReference.media as? TelegramMediaImage, let representation = largestImageRepresentation(image.representations) {
+        if representation.resource is LocalFileReferenceMediaResource || representation.resource is LocalFileMediaResource {
+            return .single(mediaReference)
+        }
+
+        let sourceReference = AnyMediaReference.message(message: MessageReference(sourceMessage), media: image)
+        return Signal<MediaResourceData, NoError> { subscriber in
+            let fetchDisposable = fetchedMediaResource(mediaBox: account.postbox.mediaBox, userLocation: .peer(sourceMessage.id.peerId), userContentType: .image, reference: sourceReference.resourceReference(representation.resource)).start()
+            let dataDisposable = account.postbox.mediaBox.resourceData(representation.resource, option: .complete(waitUntilFetchStatus: true)).start(next: { data in
+                if data.complete {
+                    subscriber.putNext(data)
+                    subscriber.putCompletion()
+                }
+            })
+            return ActionDisposable {
+                fetchDisposable.dispose()
+                dataDisposable.dispose()
+            }
+        }
+        |> take(1)
+        |> map { data -> AnyMediaReference in
+            let id = Int64.random(in: Int64.min ... Int64.max)
+            let resource = LocalFileReferenceMediaResource(localFilePath: data.path, randomId: id, size: data.size)
+            let updatedRepresentation = TelegramMediaImageRepresentation(dimensions: representation.dimensions, resource: resource, progressiveSizes: [], immediateThumbnailData: representation.immediateThumbnailData, hasVideo: representation.hasVideo, isPersonal: representation.isPersonal, typeHint: representation.typeHint)
+            let updatedImage = TelegramMediaImage(imageId: MediaId(namespace: Namespaces.Media.LocalImage, id: id), representations: [updatedRepresentation], videoRepresentations: [], immediateThumbnailData: image.immediateThumbnailData, emojiMarkup: image.emojiMarkup, reference: nil, partialReference: nil, flags: [], video: nil)
+            return .standalone(media: updatedImage)
+        }
+    } else {
+        return .single(mediaReference)
+    }
+}
+
+private func nugramPrepareRestrictedForwardMessage(account: Account, sourceMessage: Message, enqueueMessage: EnqueueMessage) -> Signal<EnqueueMessage, NoError> {
+    switch enqueueMessage {
+    case let .message(text, attributes, inlineStickers, mediaReference, threadId, replyToMessageId, replyToStoryId, localGroupingKey, correlationId, bubbleUpEmojiOrStickersets):
+        guard let mediaReference else {
+            return .single(enqueueMessage)
+        }
+        return nugramLocalMediaReference(account: account, sourceMessage: sourceMessage, mediaReference: mediaReference)
+        |> map { mediaReference -> EnqueueMessage in
+            return .message(text: text, attributes: attributes, inlineStickers: inlineStickers, mediaReference: mediaReference, threadId: threadId, replyToMessageId: replyToMessageId, replyToStoryId: replyToStoryId, localGroupingKey: localGroupingKey, correlationId: correlationId, bubbleUpEmojiOrStickersets: bubbleUpEmojiOrStickersets)
+        }
+    case .forward:
+        return .single(enqueueMessage)
+    }
+}
 
 extension ChatControllerImpl {
     func forwardMessages(messageIds: [MessageId], options: ChatInterfaceForwardOptionsState? = nil, resetCurrent: Bool = false) {
@@ -81,13 +217,13 @@ extension ChatControllerImpl {
                         }
                         return true
                     }
-                    
+
                     var hasAction = false
                     let premiumConfiguration = PremiumConfiguration.with(appConfiguration: strongSelf.context.currentAppConfiguration.with { $0 })
                     if !premiumConfiguration.isPremiumDisabled {
                         hasAction = true
                     }
-                    
+
                     controller.present(UndoOverlayController(presentationData: presentationData, content: .premiumPaywall(title: nil, text: presentationData.strings.Chat_ToastMessagingRestrictedToPremium_Text(peer.compactDisplayTitle).string, customUndoText: hasAction ? presentationData.strings.Chat_ToastMessagingRestrictedToPremium_Action : nil, timeout: nil, linkAction: { _ in
                     }), elevatedLayout: false, animateInAsReplacement: true, action: { [weak controller] action in
                         guard let self, let controller else {
@@ -103,7 +239,7 @@ extension ChatControllerImpl {
             }
             controller.multiplePeersSelected = { [weak self, weak controller] peers, peerMap, messageText, mode, forwardOptions, _ in
                 let peerIds = peers.map { $0.id }
-                
+
                 let _ = (context.engine.data.get(
                     EngineDataMap(
                         peerIds.map(TelegramEngine.EngineData.Item.Peer.SendPaidMessageStars.init(id:))
@@ -117,7 +253,7 @@ extension ChatControllerImpl {
                         return
                     }
                     let renderedPeers = renderedPeers.compactMap({ $0 })
-                    
+
                     var count: Int32 = Int32(messages.count)
                     if messageText.string.count > 0 {
                         count += 1
@@ -130,14 +266,14 @@ extension ChatControllerImpl {
                             chargingPeers.append(peer)
                         }
                     }
-                                        
+
                     let proceed = { [weak self, weak controller] in
                         guard let strongSelf = self, let strongController = controller else {
                             return
                         }
-                        
+
                         strongController.dismiss()
-                        
+
                         var result: [EnqueueMessage] = []
                         if messageText.string.count > 0 {
                             let inputText = convertMarkdownToAttributes(messageText)
@@ -152,29 +288,32 @@ extension ChatControllerImpl {
                                 }
                             }
                         }
-                        
+
                         var attributes: [MessageAttribute] = []
-                        attributes.append(ForwardOptionsMessageAttribute(hideNames: forwardOptions?.hideNames == true, hideCaptions: forwardOptions?.hideCaptions == true))
-                        
+                        let hideCaptions = forwardOptions?.hideCaptions == true
+                        attributes.append(ForwardOptionsMessageAttribute(hideNames: forwardOptions?.hideNames == true, hideCaptions: hideCaptions))
+                        let restrictedForwardEnabled = nugramRestrictedForwardEnabled(context: strongSelf.context)
+                        let forceRestrictedForward = strongSelf.presentationInterfaceState.copyProtectionEnabled
+
                         result.append(contentsOf: messages.map { message -> EnqueueMessage in
-                            return .forward(source: message.id, threadId: nil, grouping: .auto, attributes: attributes, correlationId: nil)
+                            return nugramForwardEnqueueMessage(message, threadId: nil, attributes: attributes, restrictedForwardEnabled: restrictedForwardEnabled, forceRestricted: forceRestrictedForward, hideCaptions: hideCaptions)
                         })
-                        
+
                         let commit: ([EnqueueMessage]) -> Void = { result in
                             guard let strongSelf = self else {
                                 return
                             }
                             var result = result
-                            
+
                             strongSelf.updateChatPresentationInterfaceState(animated: false, interactive: true, { $0.updatedInterfaceState({ $0.withoutSelectionState() }).updatedSearch(nil) })
-                            
+
                             var correlationIds: [Int64] = []
                             for i in 0 ..< result.count {
                                 let correlationId = Int64.random(in: Int64.min ... Int64.max)
                                 correlationIds.append(correlationId)
                                 result[i] = result[i].withUpdatedCorrelationId(correlationId)
                             }
-                            
+
                             let targetPeersShouldDivertSignals: [Signal<(EnginePeer, Bool), NoError>] = peers.map { peer -> Signal<(EnginePeer, Bool), NoError> in
                                 return strongSelf.shouldDivertMessagesToScheduled(targetPeer: peer, messages: result)
                                 |> map { shouldDivert -> (EnginePeer, Bool) in
@@ -187,9 +326,9 @@ extension ChatControllerImpl {
                                 guard let strongSelf = self else {
                                     return
                                 }
-                                
+
                                 var displayConvertingTooltip = false
-                                
+
                                 var displayPeers: [EnginePeer] = []
                                 for (peer, shouldDivert) in targetPeersShouldDivert {
                                     var peerMessages = result
@@ -204,7 +343,7 @@ extension ChatControllerImpl {
                                             }
                                         }
                                     }
-                                    
+
                                     if let maybeAmount = sendPaidMessageStars[peer.id], let amount = maybeAmount {
                                         peerMessages = peerMessages.map { message -> EnqueueMessage in
                                             return message.withUpdatedAttributes { attributes in
@@ -214,7 +353,7 @@ extension ChatControllerImpl {
                                             }
                                         }
                                     }
-                                    
+
                                     let _ = (enqueueMessages(account: strongSelf.context.account, peerId: peer.id, messages: peerMessages)
                                     |> deliverOnMainQueue).startStandalone(next: { messageIds in
                                         if let strongSelf = self {
@@ -239,7 +378,7 @@ extension ChatControllerImpl {
                                             |> deliverOnMainQueue).startStrict())
                                         }
                                     })
-                                    
+
                                     if case let .secretChat(secretPeer) = peer {
                                         if let peer = peerMap[secretPeer.regularPeerId] {
                                             displayPeers.append(peer)
@@ -248,7 +387,7 @@ extension ChatControllerImpl {
                                         displayPeers.append(peer)
                                     }
                                 }
-                                
+
                                 let presentationData = strongSelf.context.sharedContext.currentPresentationData.with { $0 }
                                 let text: String
                                 var savedMessages = false
@@ -274,20 +413,20 @@ extension ChatControllerImpl {
                                         text = ""
                                     }
                                 }
-                                
+
                                 let reactionItems: Signal<[ReactionItem], NoError>
                                 if savedMessages && messages.count > 0 {
                                     reactionItems = tagMessageReactions(context: strongSelf.context, subPeerId: nil)
                                 } else {
                                     reactionItems = .single([])
                                 }
-                                
+
                                 let _ = (reactionItems
                                 |> deliverOnMainQueue).startStandalone(next: { [weak strongSelf] reactionItems in
                                     guard let strongSelf else {
                                         return
                                     }
-                                    
+
                                     strongSelf.present(UndoOverlayController(presentationData: presentationData, content: .forward(savedMessages: savedMessages, text: text), elevatedLayout: false, position: savedMessages && messages.count > 0 ? .top : .bottom, animateInAsReplacement: true, action: { action in
                                         if savedMessages, let self, action == .info {
                                             let _ = (self.context.engine.data.get(TelegramEngine.EngineData.Item.Peer.Peer(id: self.context.account.peerId))
@@ -304,12 +443,12 @@ extension ChatControllerImpl {
                                         return false
                                     }, additionalView: (savedMessages && messages.count > 0) ? chatShareToSavedMessagesAdditionalView(strongSelf, reactionItems: reactionItems, correlationIds: correlationIds) : nil), in: .current)
                                 })
-                                
+
                                 if displayConvertingTooltip {
                                 }
                             })
                         }
-                        
+
                         switch mode {
                         case .generic:
                             commit(result)
@@ -328,7 +467,7 @@ extension ChatControllerImpl {
                             commit(transformedMessages)
                         }
                     }
-                    
+
                     if totalAmount.value > 0 {
                         let controller = chatMessagePaymentAlertController(
                             context: nil,
@@ -356,16 +495,16 @@ extension ChatControllerImpl {
                 }
                 let peerId = peer.id
                 let accountPeerId = strongSelf.context.account.peerId
-                
+
                 if resetCurrent {
                     strongSelf.updateChatPresentationInterfaceState(animated: false, interactive: true, { $0.updatedInterfaceState({ $0.withUpdatedForwardMessageIds(nil).withUpdatedForwardOptionsState(nil) }) })
                 }
-                
+
                 var isPinnedMessages = false
                 if case .pinnedMessages = strongSelf.presentationInterfaceState.subject {
                     isPinnedMessages = true
                 }
-                
+
                 var hasNotOwnMessages = false
                 for message in messages {
                     if message.id.peerId == accountPeerId && message.forwardInfo == nil {
@@ -373,7 +512,97 @@ extension ChatControllerImpl {
                         hasNotOwnMessages = true
                     }
                 }
-                
+
+                let restrictedForwardEnabled = nugramRestrictedForwardEnabled(context: strongSelf.context)
+                let forceRestrictedForward = strongSelf.presentationInterfaceState.copyProtectionEnabled
+                if restrictedForwardEnabled && (forceRestrictedForward || messages.contains(where: nugramNeedsRestrictedForward)) {
+                    var attributes: [MessageAttribute] = []
+                    attributes.append(ForwardOptionsMessageAttribute(hideNames: !hasNotOwnMessages, hideCaptions: false))
+                    var correlationIds: [Int64] = []
+                    let mappedMessages = messages.map { message -> EnqueueMessage in
+                        let correlationId = Int64.random(in: Int64.min ... Int64.max)
+                        correlationIds.append(correlationId)
+                        return nugramForwardEnqueueMessage(message, threadId: threadId, attributes: attributes, restrictedForwardEnabled: true, forceRestricted: forceRestrictedForward, hideCaptions: false).withUpdatedCorrelationId(correlationId)
+                    }
+
+                    let displayPeer = peer
+
+                    let presentationData = strongSelf.context.sharedContext.currentPresentationData.with { $0 }
+                    let savedMessages = displayPeer.id == strongSelf.context.account.peerId
+                    let text: String
+                    if savedMessages {
+                        text = messages.count == 1 ? presentationData.strings.Conversation_ForwardTooltip_SavedMessages_One : presentationData.strings.Conversation_ForwardTooltip_SavedMessages_Many
+                    } else {
+                        var peerName = displayPeer.displayTitle(strings: presentationData.strings, displayOrder: presentationData.nameDisplayOrder)
+                        peerName = peerName.replacingOccurrences(of: "**", with: "")
+                        text = messages.count == 1 ? presentationData.strings.Conversation_ForwardTooltip_Chat_One(peerName).string : presentationData.strings.Conversation_ForwardTooltip_Chat_Many(peerName).string
+                    }
+
+                    let reactionItems: Signal<[ReactionItem], NoError>
+                    if savedMessages && messages.count > 0 {
+                        reactionItems = tagMessageReactions(context: strongSelf.context, subPeerId: nil)
+                    } else {
+                        reactionItems = .single([])
+                    }
+
+                    let _ = (reactionItems
+                    |> deliverOnMainQueue).startStandalone(next: { [weak strongSelf] reactionItems in
+                        guard let strongSelf else {
+                            return
+                        }
+                        strongSelf.present(UndoOverlayController(presentationData: presentationData, content: .forward(savedMessages: savedMessages, text: text), elevatedLayout: false, position: savedMessages && messages.count > 0 ? .top : .bottom, animateInAsReplacement: true, action: { action in
+                            if savedMessages, let self, action == .info {
+                                let _ = (self.context.engine.data.get(TelegramEngine.EngineData.Item.Peer.Peer(id: self.context.account.peerId))
+                                |> deliverOnMainQueue).start(next: { [weak self] peer in
+                                    guard let self, let peer else {
+                                        return
+                                    }
+                                    guard let navigationController = self.navigationController as? NavigationController else {
+                                        return
+                                    }
+                                    self.context.sharedContext.navigateToChatController(NavigateToChatControllerParams(navigationController: navigationController, context: self.context, chatLocation: .peer(peer), forceOpenChat: true))
+                                })
+                            }
+                            return false
+                        }, additionalView: (savedMessages && messages.count > 0) ? chatShareToSavedMessagesAdditionalView(strongSelf, reactionItems: reactionItems, correlationIds: correlationIds) : nil), in: .current)
+                    })
+
+                    let preparedMessages = combineLatest(mappedMessages.enumerated().map { index, mappedMessage in
+                        return nugramPrepareRestrictedForwardMessage(account: strongSelf.context.account, sourceMessage: messages[index], enqueueMessage: mappedMessage)
+                    })
+
+                    let _ = (preparedMessages
+                    |> mapToSignal { mappedMessages in
+                        return enqueueMessages(account: strongSelf.context.account, peerId: peerId, messages: mappedMessages)
+                    }
+                    |> deliverOnMainQueue).startStandalone(next: { messageIds in
+                        if let strongSelf = self {
+                            let signals: [Signal<Bool, NoError>] = messageIds.compactMap({ id -> Signal<Bool, NoError>? in
+                                guard let id = id else {
+                                    return nil
+                                }
+                                return strongSelf.context.account.pendingMessageManager.pendingMessageStatus(id)
+                                |> mapToSignal { status, _ -> Signal<Bool, NoError> in
+                                    if status != nil {
+                                        return .never()
+                                    } else {
+                                        return .single(true)
+                                    }
+                                }
+                                |> take(1)
+                            })
+                            if strongSelf.shareStatusDisposable == nil {
+                                strongSelf.shareStatusDisposable = MetaDisposable()
+                            }
+                            strongSelf.shareStatusDisposable?.set((combineLatest(signals)
+                            |> deliverOnMainQueue).startStrict())
+                        }
+                    })
+                    strongSelf.updateChatPresentationInterfaceState(animated: false, interactive: true, { $0.updatedInterfaceState({ $0.withUpdatedForwardMessageIds(nil).withUpdatedForwardOptionsState(nil).withoutSelectionState() }).updatedSearch(nil) })
+                    strongController.dismiss()
+                    return
+                }
+
                 if case .peer(peerId) = strongSelf.chatLocation, strongSelf.parentController == nil, !isPinnedMessages {
                     strongSelf.updateChatPresentationInterfaceState(animated: false, interactive: true, { $0.updatedInterfaceState({ $0.withUpdatedForwardMessageIds(messages.map { $0.id }).withUpdatedForwardOptionsState(ChatInterfaceForwardOptionsState(hideNames: !hasNotOwnMessages, hideCaptions: false, unhideNamesOnCaptionChange: false)).withoutSelectionState() }).updatedSearch(nil) })
                     strongSelf.updateItemNodesSearchTextHighlightStates()
@@ -383,27 +612,29 @@ extension ChatControllerImpl {
                     Queue.mainQueue().after(0.88) {
                         strongSelf.chatDisplayNode.hapticFeedback.success()
                     }
-                    
+
                     let reactionItems: Signal<[ReactionItem], NoError>
                     if messages.count > 0 {
                         reactionItems = tagMessageReactions(context: strongSelf.context, subPeerId: nil)
                     } else {
                         reactionItems = .single([])
                     }
-                    
+
                     var correlationIds: [Int64] = []
+                    let restrictedForwardEnabled = nugramRestrictedForwardEnabled(context: strongSelf.context)
+                    let forceRestrictedForward = strongSelf.presentationInterfaceState.copyProtectionEnabled
                     let mappedMessages = messages.map { message -> EnqueueMessage in
                         let correlationId = Int64.random(in: Int64.min ... Int64.max)
                         correlationIds.append(correlationId)
-                        return .forward(source: message.id, threadId: nil, grouping: .auto, attributes: [], correlationId: correlationId)
+                        return nugramForwardEnqueueMessage(message, threadId: nil, attributes: [], restrictedForwardEnabled: restrictedForwardEnabled, forceRestricted: forceRestrictedForward, hideCaptions: false).withUpdatedCorrelationId(correlationId)
                     }
-                    
+
                     let _ = (reactionItems
                     |> deliverOnMainQueue).startStandalone(next: { [weak strongSelf] reactionItems in
                         guard let strongSelf else {
                             return
                         }
-                        
+
                         let presentationData = strongSelf.context.sharedContext.currentPresentationData.with { $0 }
                         strongSelf.present(UndoOverlayController(presentationData: presentationData, content: .forward(savedMessages: true, text: messages.count == 1 ? presentationData.strings.Conversation_ForwardTooltip_SavedMessages_One : presentationData.strings.Conversation_ForwardTooltip_SavedMessages_Many), elevatedLayout: false, position: .top, animateInAsReplacement: true, action: { [weak self] value in
                             if case .info = value, let strongSelf = self {
@@ -412,7 +643,7 @@ extension ChatControllerImpl {
                                     guard let strongSelf = self, let peer = peer, let navigationController = strongSelf.effectiveNavigationController else {
                                         return
                                     }
-                                    
+
                                     strongSelf.context.sharedContext.navigateToChatController(NavigateToChatControllerParams(navigationController: navigationController, context: strongSelf.context, chatLocation: .peer(peer), keepStack: .always, purposefulAction: {}, peekData: nil, forceOpenChat: true))
                                 })
                                 return true
@@ -420,7 +651,7 @@ extension ChatControllerImpl {
                             return false
                         }, additionalView: messages.count > 0 ? chatShareToSavedMessagesAdditionalView(strongSelf, reactionItems: reactionItems, correlationIds: correlationIds) : nil), in: .current)
                     })
-                    
+
                     let _ = (enqueueMessages(account: strongSelf.context.account, peerId: peerId, messages: mappedMessages)
                     |> deliverOnMainQueue).startStandalone(next: { messageIds in
                         if let strongSelf = self {
@@ -474,14 +705,14 @@ extension ChatControllerImpl {
                         if let strongSelf = self {
                             let proceed: (ChatController) -> Void = { chatController in
                                 strongSelf.updateChatPresentationInterfaceState(animated: false, interactive: true, { $0.updatedInterfaceState({ $0.withoutSelectionState() }) })
-                                
+
                                 let navigationController: NavigationController?
                                 if let parentController = strongSelf.parentController {
                                     navigationController = (parentController.navigationController as? NavigationController)
                                 } else {
                                     navigationController = strongSelf.effectiveNavigationController
                                 }
-                                
+
                                 if let navigationController = navigationController {
                                     var viewControllers = navigationController.viewControllers
                                     if threadId != nil {
@@ -490,7 +721,7 @@ extension ChatControllerImpl {
                                         viewControllers.insert(chatController, at: viewControllers.count - 1)
                                     }
                                     navigationController.setViewControllers(viewControllers, animated: false)
-                                    
+
                                     strongSelf.controllerNavigationDisposable.set((chatController.ready.get()
                                     |> SwiftSignalKit.filter { $0 }
                                     |> take(1)
