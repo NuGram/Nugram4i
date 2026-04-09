@@ -81,6 +81,60 @@ private func findQuoteRange(string: String, quoteText: String, offset: Int?) -> 
     return currentRange
 }
 
+private func removeZalgo(from text: String, entities: [MessageTextEntity]?) -> (String, [MessageTextEntity]?) {
+    if text.isEmpty {
+        return (text, entities)
+    }
+
+    var updatedText = String()
+    updatedText.reserveCapacity(text.count)
+
+    let textLength = text.utf16.count
+    var offsetMap = Array(repeating: 0, count: textLength + 1)
+    var oldOffset = 0
+    var newOffset = 0
+    var changed = false
+
+    for scalar in text.unicodeScalars {
+        offsetMap[oldOffset] = newOffset
+
+        let scalarLength = scalar.utf16.count
+        let isCombiningMark: Bool
+        switch scalar.properties.generalCategory {
+        case .nonspacingMark, .spacingMark, .enclosingMark:
+            isCombiningMark = true
+        default:
+            isCombiningMark = false
+        }
+
+        oldOffset += scalarLength
+        if isCombiningMark {
+            changed = true
+        } else {
+            updatedText.unicodeScalars.append(scalar)
+            newOffset += scalarLength
+        }
+        offsetMap[oldOffset] = newOffset
+    }
+
+    if !changed {
+        return (text, entities)
+    }
+
+    let updatedEntities = entities?.compactMap { entity -> MessageTextEntity? in
+        let lowerBound = max(0, min(textLength, entity.range.lowerBound))
+        let upperBound = max(lowerBound, min(textLength, entity.range.upperBound))
+        let updatedLowerBound = offsetMap[lowerBound]
+        let updatedUpperBound = offsetMap[upperBound]
+        if updatedUpperBound <= updatedLowerBound {
+            return nil
+        }
+        return MessageTextEntity(range: updatedLowerBound..<updatedUpperBound, type: entity.type)
+    }
+
+    return (updatedText, updatedEntities)
+}
+
 public class ChatMessageTextBubbleContentNode: ChatMessageBubbleContentNode {
     public final class ContainerNode: ASDisplayNode {
     }
@@ -487,6 +541,12 @@ public class ChatMessageTextBubbleContentNode: ChatMessageBubbleContentNode {
                     }
                 }
                 
+                if item.context.sharedContext.immediateExperimentalUISettings.nugramZalgoRemover {
+                    let updatedTextAndEntities = removeZalgo(from: rawText, entities: messageEntities)
+                    rawText = updatedTextAndEntities.0
+                    messageEntities = updatedTextAndEntities.1
+                }
+
                 var formattedDateUpdatePeriod: Int32?
                 if let messageEntities {
                     for entity in messageEntities {

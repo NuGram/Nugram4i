@@ -16175,4 +16175,12 @@ Error: %8$@";
 "CreatePoll.QuizCorrectOptionNeeded" = "Select a correct option";
 "CreatePoll.QuizCorrectOptionNeededMultiple" = "Select at least one correct option";
 
+"Nugram.Title" = "Nugram";
+"Nugram.General" = "General";
+"Nugram.Appearance" = "Appearance";
+"Nugram.SupportPrompt" = "support open-source :: don't dox people :: gpl-compliant";
+"Nugram.ComingSoon" = "Coming soon";
+"Nugram.ZalgoRemover" = "Zalgo Remover";
+"Nugram.ZalgoRemoverInfo" = "Strip excessive combining marks from incoming text.";
+
 "Stars.Intro.Transaction.Commission.Title" = "%@ commission";
