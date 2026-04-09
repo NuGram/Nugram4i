@@ -57,6 +57,8 @@ bazel-out
 bazel-out/*
 bazel-telegram-ios
 bazel-telegram-ios/*
+bazel-nugram4i
+bazel-nugram4i/*
 bazel-testlogs
 bazel-testlogs/*
 xcodeproj.bazelrc
