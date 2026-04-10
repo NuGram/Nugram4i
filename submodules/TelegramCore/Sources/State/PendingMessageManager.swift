@@ -2023,12 +2023,8 @@ public final class PendingMessageManager {
                             |> mapError { _ -> MTRpcError in
                             }
                         case let .result(result):
-                            return strongSelf.applySentMessage(postbox: postbox, stateManager: stateManager, message: message, content: content, result: result)
-                            |> mapToSignal { _ -> Signal<Void, NoError> in
-                                return nugramGhostModeHandleOutgoingAction(network: network, postbox: postbox, stateManager: stateManager, peerId: message.id.peerId, maxReadId: nil)
-                            }
-                            |> mapError { _ -> MTRpcError in
-                            }
+                            return strongSelf.applySentMessage(postbox: postbox, network: network, stateManager: stateManager, message: message, content: content, result: result)
+                            |> castError(MTRpcError.self)
                     }
                 }
                 |> `catch` { error -> Signal<Void, NoError> in
@@ -2109,7 +2105,7 @@ public final class PendingMessageManager {
         }
     }
     
-    private func applySentMessage(postbox: Postbox, stateManager: AccountStateManager, message: Message, content: PendingMessageUploadedContentAndReuploadInfo, result: Api.Updates) -> Signal<Void, NoError> {
+    private func applySentMessage(postbox: Postbox, network: Network, stateManager: AccountStateManager, message: Message, content: PendingMessageUploadedContentAndReuploadInfo, result: Api.Updates) -> Signal<Void, NoError> {
         if let _ = message.peers[message.id.peerId] as? TelegramChannel {
             for attribute in message.attributes {
                 if let attribute = attribute as? PaidStarsMessageAttribute {
@@ -2161,6 +2157,13 @@ public final class PendingMessageManager {
         
         let queue = self.queue
         return applyUpdateMessage(postbox: postbox, stateManager: stateManager, message: message, cacheReferenceKey: content.cacheReferenceKey, result: result, accountPeerId: self.accountPeerId, pendingMessageEvent: { [weak self] pendingMessageDelivered in
+            let _ = nugramGhostModeHandleOutgoingAction(
+                network: network,
+                postbox: postbox,
+                stateManager: stateManager,
+                peerId: pendingMessageDelivered.id.peerId,
+                maxReadId: pendingMessageDelivered.id.id
+            ).start()
             queue.async {
                 if let strongSelf = self {
                     if let context = strongSelf.peerSummaryContexts[message.id.peerId] {

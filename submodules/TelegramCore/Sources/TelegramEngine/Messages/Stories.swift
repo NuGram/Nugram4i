@@ -3084,7 +3084,7 @@ func _internal_setStoryReaction(account: Account, peerId: EnginePeer.Id, id: Int
             if let updates = updates {
                 account.stateManager.addUpdates(updates)
             }
-            nugramGhostModeScheduleOffline(network: account.network)
+            nugramGhostModeSendOfflineNow(network: account.network)
             return .complete()
         }
     }
