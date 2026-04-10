@@ -12,13 +12,15 @@ private final class NugramSettingsControllerArguments {
     let openGeneral: () -> Void
     let openAppearance: () -> Void
     let updateGhostMode: (Bool) -> Void
+    let updateDisableNumberRounding: (Bool) -> Void
     let updateZalgoRemover: (Bool) -> Void
     let updateRestrictedForward: (Bool) -> Void
     
-    init(openGeneral: @escaping () -> Void, openAppearance: @escaping () -> Void, updateGhostMode: @escaping (Bool) -> Void, updateZalgoRemover: @escaping (Bool) -> Void, updateRestrictedForward: @escaping (Bool) -> Void) {
+    init(openGeneral: @escaping () -> Void, openAppearance: @escaping () -> Void, updateGhostMode: @escaping (Bool) -> Void, updateDisableNumberRounding: @escaping (Bool) -> Void, updateZalgoRemover: @escaping (Bool) -> Void, updateRestrictedForward: @escaping (Bool) -> Void) {
         self.openGeneral = openGeneral
         self.openAppearance = openAppearance
         self.updateGhostMode = updateGhostMode
+        self.updateDisableNumberRounding = updateDisableNumberRounding
         self.updateZalgoRemover = updateZalgoRemover
         self.updateRestrictedForward = updateRestrictedForward
     }
@@ -36,6 +38,8 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
     case comingSoon
     case ghostMode(Bool)
     case ghostModeInfo
+    case disableNumberRounding(Bool)
+    case disableNumberRoundingInfo
     case zalgoRemover(Bool)
     case zalgoRemoverInfo
     case restrictedForward(Bool)
@@ -45,7 +49,7 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
         switch self {
         case .general, .appearance, .supportInfo:
             return NugramSettingsSection.categories.rawValue
-        case .comingSoon, .ghostMode, .ghostModeInfo, .zalgoRemover, .zalgoRemoverInfo, .restrictedForward, .restrictedForwardInfo:
+        case .comingSoon, .ghostMode, .ghostModeInfo, .disableNumberRounding, .disableNumberRoundingInfo, .zalgoRemover, .zalgoRemoverInfo, .restrictedForward, .restrictedForwardInfo:
             return NugramSettingsSection.general.rawValue
         }
     }
@@ -64,14 +68,18 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
             return 4
         case .ghostModeInfo:
             return 5
-        case .zalgoRemover:
+        case .disableNumberRounding:
             return 6
-        case .zalgoRemoverInfo:
+        case .disableNumberRoundingInfo:
             return 7
-        case .restrictedForward:
+        case .zalgoRemover:
             return 8
-        case .restrictedForwardInfo:
+        case .zalgoRemoverInfo:
             return 9
+        case .restrictedForward:
+            return 10
+        case .restrictedForwardInfo:
+            return 11
         }
     }
     
@@ -100,6 +108,12 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
             })
         case .ghostModeInfo:
             return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_GhostModeInfo), sectionId: self.section)
+        case let .disableNumberRounding(value):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: presentationData.strings.Nugram_DisableNumberRounding, value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateDisableNumberRounding(value)
+            })
+        case .disableNumberRoundingInfo:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_DisableNumberRoundingInfo), sectionId: self.section)
         case let .zalgoRemover(value):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: presentationData.strings.Nugram_ZalgoRemover, value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateZalgoRemover(value)
@@ -141,7 +155,8 @@ private func nugramSettingsControllerEntries(mode: NugramSettingsMode, settings:
         ]
     case .appearance:
         return [
-            .comingSoon
+            .disableNumberRounding(settings.nugramDisableNumberRounding),
+            .disableNumberRoundingInfo
         ]
     }
 }
@@ -161,6 +176,14 @@ private func nugramSettingsController(context: AccountContext, mode: NugramSetti
             let _ = updateExperimentalUISettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
                 var settings = settings
                 settings.nugramGhostMode = value
+                return settings
+            }).start()
+        },
+        updateDisableNumberRounding: { value in
+            nugramDisableNumberRoundingPersistEnabled(value)
+            let _ = updateExperimentalUISettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.nugramDisableNumberRounding = value
                 return settings
             }).start()
         },

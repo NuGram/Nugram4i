@@ -1,6 +1,7 @@
 import Foundation
 import AppBundle
 import PresentationStrings
+import TelegramCore
 
 public typealias PresentationStrings = _PresentationStrings
 
@@ -97,6 +98,9 @@ public func dataSizeString(_ size: Int64, forceDecimal: Bool = false, formatting
 }
 
 public func countString(_ count: Int64, forceDecimal: Bool = false) -> String {
+    if nugramDisableNumberRoundingEnabled() {
+        return nugramDisableNumberRoundingFormat(count)
+    }
     let decimalSeparator = "."
     if count >= 1000 * 1000 * 1000 {
         let remainder = Int64((Double(count % (1000 * 1000 * 1000)) / (1000 * 1000 * 100.0)).rounded(.down))

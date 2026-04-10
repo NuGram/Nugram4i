@@ -73,6 +73,7 @@ public struct ExperimentalUISettings: Codable, Equatable {
     public var forceClearGlass: Bool
     public var debugRipple: Bool
     public var nugramGhostMode: Bool
+    public var nugramDisableNumberRounding: Bool
     public var nugramZalgoRemover: Bool
     public var nugramRestrictedForward: Bool
     
@@ -126,6 +127,7 @@ public struct ExperimentalUISettings: Codable, Equatable {
             forceClearGlass: false,
             debugRipple: false,
             nugramGhostMode: false,
+            nugramDisableNumberRounding: false,
             nugramZalgoRemover: false,
             nugramRestrictedForward: false
         )
@@ -180,6 +182,7 @@ public struct ExperimentalUISettings: Codable, Equatable {
         forceClearGlass: Bool,
         debugRipple: Bool,
         nugramGhostMode: Bool,
+        nugramDisableNumberRounding: Bool,
         nugramZalgoRemover: Bool,
         nugramRestrictedForward: Bool
     ) {
@@ -231,6 +234,7 @@ public struct ExperimentalUISettings: Codable, Equatable {
         self.forceClearGlass = forceClearGlass
         self.debugRipple = debugRipple
         self.nugramGhostMode = nugramGhostMode
+        self.nugramDisableNumberRounding = nugramDisableNumberRounding
         self.nugramZalgoRemover = nugramZalgoRemover
         self.nugramRestrictedForward = nugramRestrictedForward
     }
@@ -286,6 +290,7 @@ public struct ExperimentalUISettings: Codable, Equatable {
         self.forceClearGlass = try container.decodeIfPresent(Bool.self, forKey: "forceClearGlass") ?? false
         self.debugRipple = try container.decodeIfPresent(Bool.self, forKey: "debugRipple") ?? false
         self.nugramGhostMode = try container.decodeIfPresent(Bool.self, forKey: "nugramGhostMode") ?? false
+        self.nugramDisableNumberRounding = try container.decodeIfPresent(Bool.self, forKey: "nugramDisableNumberRounding") ?? false
         self.nugramZalgoRemover = try container.decodeIfPresent(Bool.self, forKey: "nugramZalgoRemover") ?? false
         self.nugramRestrictedForward = try container.decodeIfPresent(Bool.self, forKey: "nugramRestrictedForward") ?? false
     }
@@ -341,6 +346,7 @@ public struct ExperimentalUISettings: Codable, Equatable {
         try container.encodeIfPresent(self.forceClearGlass, forKey: "forceClearGlass")
         try container.encodeIfPresent(self.debugRipple, forKey: "debugRipple")
         try container.encodeIfPresent(self.nugramGhostMode, forKey: "nugramGhostMode")
+        try container.encodeIfPresent(self.nugramDisableNumberRounding, forKey: "nugramDisableNumberRounding")
         try container.encodeIfPresent(self.nugramZalgoRemover, forKey: "nugramZalgoRemover")
         try container.encodeIfPresent(self.nugramRestrictedForward, forKey: "nugramRestrictedForward")
     }

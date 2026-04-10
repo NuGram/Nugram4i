@@ -16182,6 +16182,8 @@ Error: %8$@";
 "Nugram.ComingSoon" = "Coming soon";
 "Nugram.GhostMode" = "Ghost Mode";
 "Nugram.GhostModeInfo" = "Hide read receipts, story views, typing and upload progress, and online packets while nudging your status back offline after revealing actions.";
+"Nugram.DisableNumberRounding" = "Disable Number Rounding";
+"Nugram.DisableNumberRoundingInfo" = "Show full values like \"12 345\" instead of shortened values like \"12.3K\" in reactions, counters, views, and similar places.";
 "Nugram.ZalgoRemover" = "Zalgo Remover";
 "Nugram.ZalgoRemoverInfo" = "Strip excessive combining marks from incoming text.";
 "Nugram.RestrictedForward" = "Restricted Forwarding";

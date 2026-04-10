@@ -15,9 +15,13 @@ import UIKit
 
 private let milionsScale = "M"
 private let thousandsScale = "K"
+private let nugramDisableNumberRoundingUserDefaultsKey = "nugram_disable_number_rounding"
 
 class ScalesNumberFormatter: NumberFormatter, @unchecked Sendable {
     override func string(from number: NSNumber) -> String? {
+        if UserDefaults.standard.bool(forKey: nugramDisableNumberRoundingUserDefaultsKey) {
+            return super.string(from: number)
+        }
         let value = number.doubleValue
         let pow = log10(value)
         if pow >= 6 {
@@ -60,5 +64,4 @@ class TonNumberFormatter: NumberFormatter, @unchecked Sendable {
         return balanceText
     }
 }
-
 
