@@ -110,6 +110,13 @@ func _internal_requestMessageSelectPollOption(account: Account, messageId: Messa
                     return resultPoll
                 }
                 |> castError(RequestMessageSelectPollOptionError.self)
+                |> mapToSignal { resultPoll -> Signal<TelegramMediaPoll?, RequestMessageSelectPollOptionError> in
+                    return nugramGhostModeHandleOutgoingAction(network: account.network, postbox: account.postbox, stateManager: account.stateManager, peerId: messageId.peerId, maxReadId: messageId.id)
+                    |> castError(RequestMessageSelectPollOptionError.self)
+                    |> map { _ in
+                        resultPoll
+                    }
+                }
             }
         } else {
             return .single(nil)

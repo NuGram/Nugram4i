@@ -2024,6 +2024,9 @@ public final class PendingMessageManager {
                             }
                         case let .result(result):
                             return strongSelf.applySentMessage(postbox: postbox, stateManager: stateManager, message: message, content: content, result: result)
+                            |> mapToSignal { _ -> Signal<Void, NoError> in
+                                return nugramGhostModeHandleOutgoingAction(network: network, postbox: postbox, stateManager: stateManager, peerId: message.id.peerId, maxReadId: nil)
+                            }
                             |> mapError { _ -> MTRpcError in
                             }
                     }

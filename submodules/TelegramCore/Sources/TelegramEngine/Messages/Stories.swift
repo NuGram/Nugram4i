@@ -1975,7 +1975,6 @@ func _internal_editStoryPrivacy(account: Account, id: Int32, privacy: EngineStor
             if let updates = updates {
                 account.stateManager.addUpdates(updates)
             }
-            
             return .complete()
         }
     }
@@ -3085,7 +3084,7 @@ func _internal_setStoryReaction(account: Account, peerId: EnginePeer.Id, id: Int
             if let updates = updates {
                 account.stateManager.addUpdates(updates)
             }
-            
+            nugramGhostModeScheduleOffline(network: account.network)
             return .complete()
         }
     }

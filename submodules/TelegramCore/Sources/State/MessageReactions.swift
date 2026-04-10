@@ -398,6 +398,9 @@ private func requestUpdateMessageReaction(postbox: Postbox, network: Network, st
             }
             |> castError(RequestUpdateMessageReactionError.self)
             |> ignoreValues
+            |> then(nugramGhostModeHandleOutgoingAction(network: network, postbox: postbox, stateManager: stateManager, peerId: messageId.peerId, maxReadId: messageId.id)
+                |> castError(RequestUpdateMessageReactionError.self)
+                |> ignoreValues)
         }
         #if DEBUG
         return signal |> delay(0.1, queue: .mainQueue())

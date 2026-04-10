@@ -50,7 +50,7 @@
 "PUSH_MESSAGE_STICKER" = "%1$@|sent you a %2$@sticker";
 "PUSH_CHAT_MESSAGE_STICKER" = "%2$@|%1$@ sent a %3$@sticker";
 
-"PUSH_CONTACT_JOINED" = "%1$@|joined Telegram!";
+"PUSH_CONTACT_JOINED" = "%1$@|joined Nugram!";
 
 "PUSH_CHANNEL_MESSAGE_TEXT" = "%1$@|%2$@";
 "PUSH_CHANNEL_MESSAGE_NOTEXT" = "%1$@|posted a message";
@@ -205,7 +205,7 @@
 "PUSH_PINNED_GIF" = "%1$@|pinned a GIF";
 "PUSH_PINNED_PAID_MEDIA" = "%1$@|pinned a paid post for %2$@";
 
-"PUSH_CONTACT_JOINED" = "%1$@|joined Telegram!";
+"PUSH_CONTACT_JOINED" = "%1$@|joined Nugram!";
 
 "PUSH_AUTH_UNKNOWN" = "New login|from unrecognized device %1$@";
 "PUSH_AUTH_REGION" = "New login|from unrecognized device %1$@, location: %2$@";
@@ -1772,7 +1772,7 @@
 
 "Group.Management.AddModeratorHelp" = "You can add admins to help you manage your group.";
 
-"Watch.AppName" = "Telegram";
+"Watch.AppName" = "Nugram";
 "Watch.Compose.AddContact" = "Choose Contact";
 "Watch.Compose.CreateMessage" = "Create Message";
 "Watch.Compose.CurrentLocation" = "Current Location";
@@ -2260,7 +2260,7 @@ Unused sets are archived when you add more.";
 
 "Widget.AuthRequired" = "Log in to Telegram";
 "Widget.NoUsers" = "Start messaging to see your friends here";
-"Widget.GalleryTitle" = "Telegram";
+"Widget.GalleryTitle" = "Nugram";
 "Widget.GalleryDescription" = "Select chats";
 
 "ShareMenu.CopyShareLinkGame" = "Copy link to game";
@@ -2285,11 +2285,11 @@ Unused sets are archived when you add more.";
 "Conversation.JumpToDate" = "Jump To Date";
 "Conversation.AddToReadingList" = "Add to Reading List";
 
-"AccessDenied.CallMicrophone" = "Telegram needs access to your microphone for voice calls.\n\nPlease go to Settings > Privacy > Microphone and set Telegram to ON.";
+"AccessDenied.CallMicrophone" = "Nugram needs access to your microphone for voice calls.\n\nPlease go to Settings > Privacy > Microphone and set Telegram to ON.";
 
 "Call.EncryptionKey.Title" = "Encryption Key";
 
-"Application.Name" = "Telegram";
+"Application.Name" = "Nugram";
 "DialogList.Pin" = "Pin";
 "DialogList.Unpin" = "Unpin";
 "DialogList.PinLimitError" = "Sorry, you can pin no more than %@ chats to the top.";
@@ -2526,14 +2526,14 @@ Unused sets are archived when you add more.";
 
 "Calls.RatingFeedback" = "Write a comment...";
 
-"Call.StatusIncoming" = "Telegram Audio...";
+"Call.StatusIncoming" = "Nugram Audio...";
 "Call.IncomingVoiceCall" = "Incoming Voice Call";
 "Call.IncomingVideoCall" = "Incoming Video Call";
 "Call.StatusRequesting" = "Contacting...";
 "Call.StatusWaiting" = "Waiting...";
 "Call.StatusRinging" = "Ringing...";
 "Call.StatusConnecting" = "Connecting...";
-"Call.StatusOngoing" = "Telegram Audio %@";
+"Call.StatusOngoing" = "Nugram Audio %@";
 "Call.StatusEnded" = "Call Ended";
 "Call.StatusFailed" = "Call Failed";
 "Call.StatusBusy" = "Busy";
@@ -2598,7 +2598,7 @@ Unused sets are archived when you add more.";
 "Call.AudioRouteHeadphones" = "Headphones";
 "Call.AudioRouteHide" = "Hide";
 
-"Call.PhoneCallInProgressMessage" = "You can’t place a Telegram call if you’re already on a phone call.";
+"Call.PhoneCallInProgressMessage" = "You can’t place a Nugram call if you’re already on a phone call.";
 "Call.RecordingDisabledMessage" = "Please end your call before recording a voice message.";
 
 "Call.EmojiDescription" = "If these emoji are the same on %@'s screen, this call is 100%% secure.";
@@ -2608,8 +2608,8 @@ Unused sets are archived when you add more.";
 "Conversation.HoldForAudio" = "Hold to record audio. Tap to switch to video.";
 "Conversation.HoldForVideo" = "Hold to record video. Tap to switch to audio.";
 
-"UserInfo.TelegramCall" = "Telegram Call";
-"UserInfo.TelegramVideoCall" = "Telegram Video Call";
+"UserInfo.TelegramCall" = "Nugram Call";
+"UserInfo.TelegramVideoCall" = "Nugram Video Call";
 "UserInfo.PhoneCall" = "Phone Call";
 
 "SharedMedia.CategoryMedia" = "Media";
@@ -2617,8 +2617,8 @@ Unused sets are archived when you add more.";
 "SharedMedia.CategoryLinks" = "Links";
 "SharedMedia.CategoryOther" = "Audio";
 
-"AccessDenied.VideoMessageCamera" = "Telegram needs access to your camera to send video messages.\n\nPlease go to Settings > Privacy > Camera and set Telegram to ON.";
-"AccessDenied.VideoMessageMicrophone" = "Telegram needs access to your microphone to send video messages.\n\nPlease go to Settings > Privacy > Microphone and set Telegram to ON.";
+"AccessDenied.VideoMessageCamera" = "Nugram needs access to your camera to send video messages.\n\nPlease go to Settings > Privacy > Camera and set Nugram to ON.";
+"AccessDenied.VideoMessageMicrophone" = "Nugram needs access to your microphone to send video messages.\n\nPlease go to Settings > Privacy > Microphone and set Nugram to ON.";
 
 "ChatSettings.AutomaticVideoMessageDownload" = "AUTOMATIC VIDEO MESSAGE DOWNLOAD";
 
@@ -2796,7 +2796,7 @@ Unused sets are archived when you add more.";
 
 "Contacts.PhoneNumber" = "Phone Number";
 "Contacts.AddPhoneNumber" = "Add %@";
-"Contacts.ShareTelegram" = "Share Telegram";
+"Contacts.ShareTelegram" = "Share Nugram";
 
 "Conversation.ViewChannel" = "VIEW CHANNEL";
 "Conversation.ViewGroup" = "VIEW GROUP";
@@ -2863,7 +2863,7 @@ Unused sets are archived when you add more.";
 "Privacy.Calls.P2PHelp" = "Disabling peer-to-peer will relay all calls through Telegram servers to avoid revealing your IP address, but will slightly decrease audio quality.";
 
 "Privacy.Calls.Integration" = "iOS Call Integration";
-"Privacy.Calls.IntegrationHelp" = "iOS Call Integration shows Telegram calls on the lock screen and in the system's call history. If iCloud sync is enabled, your call history is shared with Apple.";
+"Privacy.Calls.IntegrationHelp" = "iOS Call Integration shows Nugram calls on the lock screen and in the system's call history. If iCloud sync is enabled, your call history is shared with Apple.";
 
 "Call.ReportPlaceholder" = "What went wrong?";
 "Call.ReportIncludeLog" = "Send technical information";
@@ -2883,12 +2883,12 @@ Unused sets are archived when you add more.";
 
 "Stickers.FrequentlyUsed" = "Recently Used";
 
-"Contacts.ImportersCount_1" = "1 contact on Telegram";
-"Contacts.ImportersCount_2" = "2 contacts on Telegram";
-"Contacts.ImportersCount_3_10" = "%@ contacts on Telegram";
-"Contacts.ImportersCount_any" = "%@ contacts on Telegram";
-"Contacts.ImportersCount_many" = "%@ contacts on Telegram";
-"Contacts.ImportersCount_0" = "%@ contacts on Telegram";
+"Contacts.ImportersCount_1" = "1 contact on Nugram";
+"Contacts.ImportersCount_2" = "2 contacts on Nugram";
+"Contacts.ImportersCount_3_10" = "%@ contacts on Nugram";
+"Contacts.ImportersCount_any" = "%@ contacts on Nugram";
+"Contacts.ImportersCount_many" = "%@ contacts on Nugram";
+"Contacts.ImportersCount_0" = "%@ contacts on Nugram";
 
 "Conversation.ContextMenuBan" = "Restrict";
 
@@ -3058,12 +3058,12 @@ Unused sets are archived when you add more.";
 
 "NotificationSettings.ContactJoined" = "New Contacts";
 
-"AccessDenied.LocationAlwaysDenied" = "If you'd like to share your Live Location with friends, Telegram needs location access when the app is in the background.\n\nPlease go to Settings > Privacy > Location Services and set Telegram to Always.";
+"AccessDenied.LocationAlwaysDenied" = "If you'd like to share your Live Location with friends, Nugram needs location access when the app is in the background.\n\nPlease go to Settings > Privacy > Location Services and set Nugram to Always.";
 
 "UserInfo.UnblockConfirmation" = "Unblock %@?";
 
 "Login.BannedPhoneSubject" = "Banned phone number: %@";
-"Login.BannedPhoneBody" = "I'm trying to use my mobile phone number: %@\nBut Telegram says it's banned. Please help.";
+"Login.BannedPhoneBody" = "I'm trying to use my mobile phone number: %@\nBut Nugram says it's banned. Please help.";
 
 "Conversation.StopLiveLocation" = "Stop Sharing";
 
@@ -3134,7 +3134,7 @@ Unused sets are archived when you add more.";
 "Channel.Setup.TypePrivateHelp" = "Private channels can only be joined if you were invited or have an invite link.";
 "Group.Username.InvalidTooShort" = "Group names must have at least 5 characters.";
 "Group.Username.InvalidStartsWithNumber" = "Group names can't start with a number.";
-"Group.Username.CreatePublicLinkHelp" = "People can share this link with others and find your group using Telegram search.";
+"Group.Username.CreatePublicLinkHelp" = "People can share this link with others and find your group using Nugram search.";
 "Channel.TypeSetup.Title" = "Channel Type";
 
 "Group.Setup.TypePrivate" = "Private";
@@ -3146,16 +3146,16 @@ Unused sets are archived when you add more.";
 
 "Privacy.PaymentsClearInfoDoneHelp" = "Payment & shipping info cleared.";
 
-"InfoPlist.NSContactsUsageDescription" = "Telegram will continuously upload your contacts to its heavily encrypted cloud servers to let you connect with your friends across all your devices.";
-"InfoPlist.NSLocationWhenInUseUsageDescription" = "When you send your location to your friends, Telegram needs access to show them a map.";
+"InfoPlist.NSContactsUsageDescription" = "Nugram will continuously upload your contacts to Telegram's heavily encrypted cloud servers to let you connect with your friends across all your devices.";
+"InfoPlist.NSLocationWhenInUseUsageDescription" = "When you send your location to your friends, Nugram needs access to show them a map.";
 "InfoPlist.NSCameraUsageDescription" = "We need this so that you can take and share photos and videos, as well as make video calls.";
 "InfoPlist.NSPhotoLibraryUsageDescription" = "We need this so that you can share photos and videos from your photo library.";
 "InfoPlist.NSPhotoLibraryAddUsageDescription" = "We need this so that you can save photos and videos to your photo library.";
 "InfoPlist.NSMicrophoneUsageDescription" = "We need this so that you can record and share voice messages and videos with sound.";
 "InfoPlist.NSSiriUsageDescription" = "You can use Siri to send messages.";
-"InfoPlist.NSLocationAlwaysAndWhenInUseUsageDescription" = "When you choose to share your Live Location with friends in a chat, Telegram needs background access to your location to keep them updated for the duration of the live sharing.";
-"InfoPlist.NSLocationAlwaysUsageDescription" = "When you choose to share your live location with friends in a chat, Telegram needs background access to your location to keep them updated for the duration of the live sharing. You also need this to send locations from an Apple Watch.";
-"InfoPlist.NSLocationWhenInUseUsageDescription" = "When you send your location to your friends, Telegram needs access to show them a map.";
+"InfoPlist.NSLocationAlwaysAndWhenInUseUsageDescription" = "When you choose to share your Live Location with friends in a chat, Nugram needs background access to your location to keep them updated for the duration of the live sharing.";
+"InfoPlist.NSLocationAlwaysUsageDescription" = "When you choose to share your live location with friends in a chat, Nugram needs background access to your location to keep them updated for the duration of the live sharing. You also need this to send locations from an Apple Watch.";
+"InfoPlist.NSLocationWhenInUseUsageDescription" = "When you send your location to your friends, Nugram needs access to show them a map.";
 "InfoPlist.NSFaceIDUsageDescription" = "You can use Face ID to unlock the app.";
 
 "Privacy.Calls.P2PNever" = "Never";
@@ -3299,7 +3299,7 @@ Unused sets are archived when you add more.";
 
 "DialogList.AdLabel" = "Proxy Sponsor";
 "DialogList.AdNoticeAlert" = "The proxy you are using displays a sponsored channel in your chat list.";
-"SocksProxySetup.AdNoticeHelp" = "This proxy may display a sponsored channel in your chat list. This doesn't reveal your Telegram traffic.";
+"SocksProxySetup.AdNoticeHelp" = "This proxy may display a sponsored channel in your chat list. This doesn't reveal your Nugram traffic.";
 
 "SocksProxySetup.ShareProxyList" = "Share Proxy List";
 
@@ -16180,6 +16180,8 @@ Error: %8$@";
 "Nugram.Appearance" = "Appearance";
 "Nugram.SupportPrompt" = "support open-source :: don't dox people :: gpl-compliant";
 "Nugram.ComingSoon" = "Coming soon";
+"Nugram.GhostMode" = "Ghost Mode";
+"Nugram.GhostModeInfo" = "Hide read receipts, story views, typing and upload progress, and online packets while nudging your status back offline after revealing actions.";
 "Nugram.ZalgoRemover" = "Zalgo Remover";
 "Nugram.ZalgoRemoverInfo" = "Strip excessive combining marks from incoming text.";
 "Nugram.RestrictedForward" = "Restricted Forwarding";

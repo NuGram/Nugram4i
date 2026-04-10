@@ -72,6 +72,7 @@ public struct ExperimentalUISettings: Codable, Equatable {
     public var enablePWA: Bool
     public var forceClearGlass: Bool
     public var debugRipple: Bool
+    public var nugramGhostMode: Bool
     public var nugramZalgoRemover: Bool
     public var nugramRestrictedForward: Bool
     
@@ -124,6 +125,7 @@ public struct ExperimentalUISettings: Codable, Equatable {
             enablePWA: false,
             forceClearGlass: false,
             debugRipple: false,
+            nugramGhostMode: false,
             nugramZalgoRemover: false,
             nugramRestrictedForward: false
         )
@@ -177,6 +179,7 @@ public struct ExperimentalUISettings: Codable, Equatable {
         enablePWA: Bool,
         forceClearGlass: Bool,
         debugRipple: Bool,
+        nugramGhostMode: Bool,
         nugramZalgoRemover: Bool,
         nugramRestrictedForward: Bool
     ) {
@@ -227,6 +230,7 @@ public struct ExperimentalUISettings: Codable, Equatable {
         self.enablePWA = enablePWA
         self.forceClearGlass = forceClearGlass
         self.debugRipple = debugRipple
+        self.nugramGhostMode = nugramGhostMode
         self.nugramZalgoRemover = nugramZalgoRemover
         self.nugramRestrictedForward = nugramRestrictedForward
     }
@@ -281,6 +285,7 @@ public struct ExperimentalUISettings: Codable, Equatable {
         self.enablePWA = try container.decodeIfPresent(Bool.self, forKey: "enablePWA") ?? false
         self.forceClearGlass = try container.decodeIfPresent(Bool.self, forKey: "forceClearGlass") ?? false
         self.debugRipple = try container.decodeIfPresent(Bool.self, forKey: "debugRipple") ?? false
+        self.nugramGhostMode = try container.decodeIfPresent(Bool.self, forKey: "nugramGhostMode") ?? false
         self.nugramZalgoRemover = try container.decodeIfPresent(Bool.self, forKey: "nugramZalgoRemover") ?? false
         self.nugramRestrictedForward = try container.decodeIfPresent(Bool.self, forKey: "nugramRestrictedForward") ?? false
     }
@@ -335,6 +340,7 @@ public struct ExperimentalUISettings: Codable, Equatable {
         try container.encodeIfPresent(self.enablePWA, forKey: "enablePWA")
         try container.encodeIfPresent(self.forceClearGlass, forKey: "forceClearGlass")
         try container.encodeIfPresent(self.debugRipple, forKey: "debugRipple")
+        try container.encodeIfPresent(self.nugramGhostMode, forKey: "nugramGhostMode")
         try container.encodeIfPresent(self.nugramZalgoRemover, forKey: "nugramZalgoRemover")
         try container.encodeIfPresent(self.nugramRestrictedForward, forKey: "nugramRestrictedForward")
     }

@@ -579,7 +579,9 @@ private func sendUploadedMessageContent(
                     return .complete()
                 case let .result(result):
                     stateManager.addUpdates(result)
-                    return .complete()
+                    return nugramGhostModeHandleOutgoingAction(network: network, postbox: postbox, stateManager: stateManager, peerId: peerId, maxReadId: nil)
+                    |> ignoreValues
+                    |> castError(MTRpcError.self)
                 }
             }
             |> mapError { error -> StandaloneSendMessagesError in

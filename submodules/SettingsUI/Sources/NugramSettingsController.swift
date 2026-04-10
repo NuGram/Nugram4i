@@ -11,12 +11,14 @@ import AccountContext
 private final class NugramSettingsControllerArguments {
     let openGeneral: () -> Void
     let openAppearance: () -> Void
+    let updateGhostMode: (Bool) -> Void
     let updateZalgoRemover: (Bool) -> Void
     let updateRestrictedForward: (Bool) -> Void
     
-    init(openGeneral: @escaping () -> Void, openAppearance: @escaping () -> Void, updateZalgoRemover: @escaping (Bool) -> Void, updateRestrictedForward: @escaping (Bool) -> Void) {
+    init(openGeneral: @escaping () -> Void, openAppearance: @escaping () -> Void, updateGhostMode: @escaping (Bool) -> Void, updateZalgoRemover: @escaping (Bool) -> Void, updateRestrictedForward: @escaping (Bool) -> Void) {
         self.openGeneral = openGeneral
         self.openAppearance = openAppearance
+        self.updateGhostMode = updateGhostMode
         self.updateZalgoRemover = updateZalgoRemover
         self.updateRestrictedForward = updateRestrictedForward
     }
@@ -32,6 +34,8 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
     case appearance
     case supportInfo
     case comingSoon
+    case ghostMode(Bool)
+    case ghostModeInfo
     case zalgoRemover(Bool)
     case zalgoRemoverInfo
     case restrictedForward(Bool)
@@ -41,7 +45,7 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
         switch self {
         case .general, .appearance, .supportInfo:
             return NugramSettingsSection.categories.rawValue
-        case .comingSoon, .zalgoRemover, .zalgoRemoverInfo, .restrictedForward, .restrictedForwardInfo:
+        case .comingSoon, .ghostMode, .ghostModeInfo, .zalgoRemover, .zalgoRemoverInfo, .restrictedForward, .restrictedForwardInfo:
             return NugramSettingsSection.general.rawValue
         }
     }
@@ -56,14 +60,18 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
             return 2
         case .comingSoon:
             return 3
-        case .zalgoRemover:
+        case .ghostMode:
             return 4
-        case .zalgoRemoverInfo:
+        case .ghostModeInfo:
             return 5
-        case .restrictedForward:
+        case .zalgoRemover:
             return 6
-        case .restrictedForwardInfo:
+        case .zalgoRemoverInfo:
             return 7
+        case .restrictedForward:
+            return 8
+        case .restrictedForwardInfo:
+            return 9
         }
     }
     
@@ -86,6 +94,12 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
             return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_SupportPrompt), sectionId: self.section)
         case .comingSoon:
             return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_ComingSoon), sectionId: self.section, textAlignment: .center)
+        case let .ghostMode(value):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: presentationData.strings.Nugram_GhostMode, value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateGhostMode(value)
+            })
+        case .ghostModeInfo:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_GhostModeInfo), sectionId: self.section)
         case let .zalgoRemover(value):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: presentationData.strings.Nugram_ZalgoRemover, value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateZalgoRemover(value)
@@ -118,6 +132,8 @@ private func nugramSettingsControllerEntries(mode: NugramSettingsMode, settings:
         ]
     case .general:
         return [
+            .ghostMode(settings.nugramGhostMode),
+            .ghostModeInfo,
             .zalgoRemover(settings.nugramZalgoRemover),
             .zalgoRemoverInfo,
             .restrictedForward(settings.nugramRestrictedForward),
@@ -139,6 +155,14 @@ private func nugramSettingsController(context: AccountContext, mode: NugramSetti
         },
         openAppearance: {
             pushControllerImpl?(nugramSettingsController(context: context, mode: .appearance))
+        },
+        updateGhostMode: { value in
+            nugramGhostModeSetEnabled(value, network: context.account.network)
+            let _ = updateExperimentalUISettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.nugramGhostMode = value
+                return settings
+            }).start()
         },
         updateZalgoRemover: { value in
             let _ = updateExperimentalUISettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
