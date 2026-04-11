@@ -280,7 +280,7 @@ private func chatListFilterPresetListControllerEntries(presentationData: Present
     entries.append(.addItem(text: presentationData.strings.ChatListFilterList_CreateFolder, isEditing: state.isEditing))
     
     var effectiveDisplayTags: Bool?
-    if isPremium {
+    if nugramCanUseLocalFolderColors(isPremium: isPremium) {
         effectiveDisplayTags = displayTags
     }
     
@@ -292,14 +292,14 @@ private func chatListFilterPresetListControllerEntries(presentationData: Present
             }
             if case let .filter(_, title, _, _) = filter {
                 folderCount += 1
-                entries.append(.preset(index: PresetIndex(value: entries.count), title: title, label: chatCount == 0 ? "" : "\(chatCount)", preset: filter, canBeReordered: filters.count > 1, canBeDeleted: true, isEditing: state.isEditing, isAllChats: false, isDisabled: !isPremium && folderCount > limits.maxFoldersCount, displayTags: effectiveDisplayTags == true))
+                entries.append(.preset(index: PresetIndex(value: entries.count), title: title, label: chatCount == 0 ? "" : "\(chatCount)", preset: filter, canBeReordered: filters.count > 1, canBeDeleted: true, isEditing: state.isEditing, isAllChats: false, isDisabled: !isPremium && !nugramUnlimitedFoldersEnabled() && folderCount > limits.maxFoldersCount, displayTags: effectiveDisplayTags == true))
             }
         }
         
         entries.append(.listFooter(presentationData.strings.ChatListFolderSettings_EditFoldersInfo))
     }
     
-    if !filteredSuggestedFilters.isEmpty && actualFilters.count < limits.maxFoldersCount {
+    if !filteredSuggestedFilters.isEmpty && (nugramUnlimitedFoldersEnabled() || actualFilters.count < limits.maxFoldersCount) {
         entries.append(.suggestedListHeader(presentationData.strings.ChatListFolderSettings_RecommendedFoldersSection))
         for filter in filteredSuggestedFilters {
             entries.append(.suggestedPreset(index: PresetIndex(value: entries.count), title: filter.title, label: filter.description, preset: filter.data))
@@ -376,13 +376,13 @@ public func chatListFilterPresetListController(context: AccountContext, mode: Ch
             
             let limit = limits.maxFoldersCount
             let premiumLimit = premiumLimits.maxFoldersCount
-            if filters.count >= premiumLimit {
+            if !nugramUnlimitedFoldersEnabled() && filters.count >= premiumLimit {
                 let controller = PremiumLimitScreen(context: context, subject: .folders, count: Int32(filters.count), action: {
                     return true
                 })
                 pushControllerImpl?(controller)
                 return
-            } else if filters.count >= limit && !isPremium {
+            } else if !nugramUnlimitedFoldersEnabled() && filters.count >= limit && !isPremium {
                 var replaceImpl: ((ViewController) -> Void)?
                 let controller = PremiumLimitScreen(context: context, subject: .folders, count: Int32(filters.count), action: {
                     let controller = PremiumIntroScreen(context: context, source: .folders)
@@ -428,13 +428,13 @@ public func chatListFilterPresetListController(context: AccountContext, mode: Ch
             
             let limit = limits.maxFoldersCount
             let premiumLimit = premiumLimits.maxFoldersCount
-            if filters.count >= premiumLimit {
+            if !nugramUnlimitedFoldersEnabled() && filters.count >= premiumLimit {
                 let controller = PremiumLimitScreen(context: context, subject: .folders, count: Int32(filters.count), action: {
                     return true
                 })
                 pushControllerImpl?(controller)
                 return
-            } else if filters.count >= limit && !isPremium {
+            } else if !nugramUnlimitedFoldersEnabled() && filters.count >= limit && !isPremium {
                 var replaceImpl: ((ViewController) -> Void)?
                 let controller = PremiumLimitScreen(context: context, subject: .folders, count: Int32(filters.count), action: {
                     let controller = PremiumIntroScreen(context: context, source: .folders)
@@ -569,15 +569,19 @@ public func chatListFilterPresetListController(context: AccountContext, mode: Ch
     }, updateDisplayTags: { value in
         context.engine.peers.updateChatListFiltersDisplayTags(isEnabled: value)
     }, updateDisplayTagsLocked: {
-        var replaceImpl: ((ViewController) -> Void)?
-        let controller = context.sharedContext.makePremiumDemoController(context: context, subject: .folderTags, forceDark: false, action: {
-            let controller = context.sharedContext.makePremiumIntroController(context: context, source: .folderTags, forceDark: false, dismissed: nil)
-            replaceImpl?(controller)
-        }, dismissed: nil)
-        replaceImpl = { [weak controller] c in
-            controller?.replace(with: c)
+        if nugramUnlimitedFoldersEnabled() {
+            context.engine.peers.updateChatListFiltersDisplayTags(isEnabled: true)
+        } else {
+            var replaceImpl: ((ViewController) -> Void)?
+            let controller = context.sharedContext.makePremiumDemoController(context: context, subject: .folderTags, forceDark: false, action: {
+                let controller = context.sharedContext.makePremiumIntroController(context: context, source: .folderTags, forceDark: false, dismissed: nil)
+                replaceImpl?(controller)
+            }, dismissed: nil)
+            replaceImpl = { [weak controller] c in
+                controller?.replace(with: c)
+            }
+            pushControllerImpl?(controller)
         }
-        pushControllerImpl?(controller)
     })
         
     let featuredFilters = context.account.postbox.preferencesView(keys: [PreferencesKeys.chatListFiltersFeaturedState])
@@ -792,7 +796,7 @@ public func chatListFilterPresetListController(context: AccountContext, mode: Ch
         )
         |> deliverOnMainQueue).start(next: { order, peer in
             let isPremium = peer?.isPremium ?? false
-            if !isPremium, let order = order, order.first != 0 {
+            if !isPremium && !nugramUnlimitedFoldersEnabled(), let order = order, order.first != 0 {
                 updatedFilterOrder.set(.single(previousOrder))
 
                 let presentationData = context.sharedContext.currentPresentationData.with { $0 }

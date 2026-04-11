@@ -1222,10 +1222,12 @@ final class PeerInfoHeaderNode: ASDisplayNode {
                 title = "" //"\u{00A0}"
             }
             if title.isEmpty {
-                if let peer = peer as? TelegramUser, let phone = peer.phone {
-                    title = formatPhoneNumber(context: self.context, number: phone)
-                } else if let addressName = peer.addressName {
+                if let addressName = peer.addressName, !addressName.isEmpty {
                     title = "@\(addressName)"
+                } else if let peer = peer as? TelegramUser, let phone = peer.phone, !nugramHidePhoneNumberEnabled() {
+                    title = formatPhoneNumber(context: self.context, number: phone)
+                } else if peer is TelegramUser, nugramHidePhoneNumberEnabled() {
+                    title = presentationData.strings.PhoneHidden
                 } else {
                     title = "_"
                 }
@@ -1236,11 +1238,16 @@ final class PeerInfoHeaderNode: ASDisplayNode {
             smallTitleAttributes = MultiScaleTextState.Attributes(font: Font.medium(28.0), color: .white, shadowColor: titleShadowColor)
             
             if self.isSettings, let user = peer as? TelegramUser {
-                var subtitle = formatPhoneNumber(context: self.context, number: user.phone ?? "")
-                
-                if let mainUsername = user.addressName, !mainUsername.isEmpty {
-                    subtitle = "\(subtitle) • @\(mainUsername)"
+                var subtitleComponents: [String] = []
+                if nugramHidePhoneNumberEnabled() {
+                    subtitleComponents.append(presentationData.strings.PhoneHidden)
+                } else if let phone = user.phone, !phone.isEmpty {
+                    subtitleComponents.append(formatPhoneNumber(context: self.context, number: phone))
                 }
+                if let mainUsername = user.addressName, !mainUsername.isEmpty {
+                    subtitleComponents.append("@\(mainUsername)")
+                }
+                let subtitle = subtitleComponents.joined(separator: " • ")
                 subtitleStringText = subtitle
                 subtitleAttributes = MultiScaleTextState.Attributes(font: Font.regular(17.0), color: .white)
                 smallSubtitleAttributes = MultiScaleTextState.Attributes(font: Font.regular(16.0), color: .white, shadowColor: titleShadowColor)
@@ -2859,4 +2866,3 @@ final class PeerInfoHeaderNode: ASDisplayNode {
         transition.updateAnchorPoint(layer: self.avatarListNode.maskNode.layer, anchorPoint: maskAnchorPoint)
     }
 }
-

@@ -1534,14 +1534,30 @@ private func synchronizeChatListFilters(transaction: Transaction, accountPeerId:
             return .complete()
         }
         |> mapToSignal { remoteFilters, remoteTagsEnabled -> Signal<Never, NoError> in
+            let preserveLocalOnlyFilters = nugramUnlimitedFoldersEnabled()
+            
+            func mergedLocalFiltersPreservingRemote(_ localFilters: [ChatListFilter], _ remoteFilters: [ChatListFilter]) -> [ChatListFilter] {
+                if !preserveLocalOnlyFilters {
+                    return remoteFilters
+                }
+                
+                var mergedFilters = remoteFilters
+                for filter in localFilters {
+                    if !remoteFilters.contains(where: { $0.id == filter.id }) {
+                        mergedFilters.append(filter)
+                    }
+                }
+                return mergedFilters
+            }
+            
             if localFilters == locallyKnownRemoteFilters && localDisplayTags == locallyKnownRemoteDisplayTags {
                 return postbox.transaction { transaction -> Void in
                     let _ = updateChatListFiltersState(transaction: transaction, { state in
                         var state = state
-                        state.filters = remoteFilters
-                        state.remoteFilters = state.filters
+                        state.filters = mergedLocalFiltersPreservingRemote(localFilters, remoteFilters)
+                        state.remoteFilters = remoteFilters
                         state.displayTags = remoteTagsEnabled
-                        state.remoteDisplayTags = state.displayTags
+                        state.remoteDisplayTags = remoteTagsEnabled
                         return state
                     })
                 }
@@ -1643,8 +1659,8 @@ private func synchronizeChatListFilters(transaction: Transaction, accountPeerId:
                     let _ = updateChatListFiltersState(transaction: transaction, { state in
                         var state = state
                         state.filters = mergedFilters
-                        state.remoteFilters = state.filters
-                        state.remoteDisplayTags = state.displayTags
+                        state.remoteFilters = remoteFilters
+                        state.remoteDisplayTags = remoteTagsEnabled
                         return state
                     })
                 }

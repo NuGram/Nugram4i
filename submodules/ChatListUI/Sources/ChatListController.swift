@@ -3991,7 +3991,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController 
                     selectedEntryId = .all
                 }
             }
-            let filtersLimit = isPremium == false ? limits.maxFoldersCount : nil
+            let filtersLimit = (isPremium == false && !nugramUnlimitedFoldersEnabled()) ? limits.maxFoldersCount : nil
             strongSelf.tabContainerData = (resolvedItems, false, filtersLimit)
             var availableFilters: [ChatListContainerNodeFilter] = []
             var hasAllChats = false
@@ -6209,7 +6209,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController 
                     let filterType = chatListFilterType(data)
                     var badge: ContextMenuActionBadge?
                     var isDisabled = false
-                    if !isPremium && filterCount >= limits.maxFoldersCount {
+                    if !isPremium && !nugramUnlimitedFoldersEnabled() && filterCount >= limits.maxFoldersCount {
                         isDisabled = true
                     }
                     

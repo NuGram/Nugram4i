@@ -42,7 +42,9 @@ func _internal_toggleItemPinned(postbox: Postbox, accountPeerId: PeerId, locatio
             }
             
             let limitCount: Int
-            if case .root = groupId {
+            if nugramUnlimitedPinsEnabled() {
+                limitCount = Int.max
+            } else if case .root = groupId {
                 limitCount = Int(userLimitsConfiguration.maxPinnedChatCount)
             } else {
                 limitCount = Int(userLimitsConfiguration.maxArchivedPinnedChatCount)
@@ -73,7 +75,7 @@ func _internal_toggleItemPinned(postbox: Postbox, accountPeerId: PeerId, locatio
                             updatedData.includePeers.removePinnedPeer(peerId)
                         } else {
                             let _ = updatedData.includePeers.addPinnedPeer(peerId)
-                            if updatedData.includePeers.peers.count > userLimitsConfiguration.maxFolderChatsCount {
+                            if !nugramUnlimitedPinsEnabled() && updatedData.includePeers.peers.count > userLimitsConfiguration.maxFolderChatsCount {
                                 result = .limitExceeded(count: updatedData.includePeers.peers.count, limit: Int(userLimitsConfiguration.maxFolderChatsCount))
                                 updatedData = data
                             }

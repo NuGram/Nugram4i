@@ -683,8 +683,9 @@ private func chatListFilterPresetControllerEntries(context: AccountContext, pres
         resolvedColor = context.peerNameColors.getChatFolderTag(tagColor, dark: presentationData.theme.overallDarkAppearance)
     }
     
-    entries.append(.tagColorHeader(name: state.name, color: resolvedColor, isPremium: isPremium))
-    entries.append(.tagColor(colors: context.peerNameColors, currentColor: tagColor, isPremium: isPremium))
+    let canUseTagColors = nugramCanUseLocalFolderColors(isPremium: isPremium)
+    entries.append(.tagColorHeader(name: state.name, color: resolvedColor, isPremium: canUseTagColors))
+    entries.append(.tagColor(colors: context.peerNameColors, currentColor: tagColor, isPremium: canUseTagColors))
     entries.append(.tagColorFooter)
     
     var hasLinks = false

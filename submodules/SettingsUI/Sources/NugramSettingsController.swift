@@ -12,15 +12,25 @@ private final class NugramSettingsControllerArguments {
     let openGeneral: () -> Void
     let openAppearance: () -> Void
     let updateGhostMode: (Bool) -> Void
+    let updateUnlimitedPins: (Bool) -> Void
+    let updateUnlimitedFolders: (Bool) -> Void
+    let updateUnlimitedLogins: (Bool) -> Void
     let updateDisableNumberRounding: (Bool) -> Void
+    let updateTimeWithSeconds: (Bool) -> Void
+    let updateHidePhoneNumber: (Bool) -> Void
     let updateZalgoRemover: (Bool) -> Void
     let updateRestrictedForward: (Bool) -> Void
     
-    init(openGeneral: @escaping () -> Void, openAppearance: @escaping () -> Void, updateGhostMode: @escaping (Bool) -> Void, updateDisableNumberRounding: @escaping (Bool) -> Void, updateZalgoRemover: @escaping (Bool) -> Void, updateRestrictedForward: @escaping (Bool) -> Void) {
+    init(openGeneral: @escaping () -> Void, openAppearance: @escaping () -> Void, updateGhostMode: @escaping (Bool) -> Void, updateUnlimitedPins: @escaping (Bool) -> Void, updateUnlimitedFolders: @escaping (Bool) -> Void, updateUnlimitedLogins: @escaping (Bool) -> Void, updateDisableNumberRounding: @escaping (Bool) -> Void, updateTimeWithSeconds: @escaping (Bool) -> Void, updateHidePhoneNumber: @escaping (Bool) -> Void, updateZalgoRemover: @escaping (Bool) -> Void, updateRestrictedForward: @escaping (Bool) -> Void) {
         self.openGeneral = openGeneral
         self.openAppearance = openAppearance
         self.updateGhostMode = updateGhostMode
+        self.updateUnlimitedPins = updateUnlimitedPins
+        self.updateUnlimitedFolders = updateUnlimitedFolders
+        self.updateUnlimitedLogins = updateUnlimitedLogins
         self.updateDisableNumberRounding = updateDisableNumberRounding
+        self.updateTimeWithSeconds = updateTimeWithSeconds
+        self.updateHidePhoneNumber = updateHidePhoneNumber
         self.updateZalgoRemover = updateZalgoRemover
         self.updateRestrictedForward = updateRestrictedForward
     }
@@ -38,8 +48,18 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
     case comingSoon
     case ghostMode(Bool)
     case ghostModeInfo
+    case unlimitedPins(Bool)
+    case unlimitedPinsInfo
+    case unlimitedFolders(Bool)
+    case unlimitedFoldersInfo
+    case unlimitedLogins(Bool)
+    case unlimitedLoginsInfo
     case disableNumberRounding(Bool)
     case disableNumberRoundingInfo
+    case timeWithSeconds(Bool)
+    case timeWithSecondsInfo
+    case hidePhoneNumber(Bool)
+    case hidePhoneNumberInfo
     case zalgoRemover(Bool)
     case zalgoRemoverInfo
     case restrictedForward(Bool)
@@ -49,7 +69,7 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
         switch self {
         case .general, .appearance, .supportInfo:
             return NugramSettingsSection.categories.rawValue
-        case .comingSoon, .ghostMode, .ghostModeInfo, .disableNumberRounding, .disableNumberRoundingInfo, .zalgoRemover, .zalgoRemoverInfo, .restrictedForward, .restrictedForwardInfo:
+        case .comingSoon, .ghostMode, .ghostModeInfo, .unlimitedPins, .unlimitedPinsInfo, .unlimitedFolders, .unlimitedFoldersInfo, .unlimitedLogins, .unlimitedLoginsInfo, .disableNumberRounding, .disableNumberRoundingInfo, .timeWithSeconds, .timeWithSecondsInfo, .hidePhoneNumber, .hidePhoneNumberInfo, .zalgoRemover, .zalgoRemoverInfo, .restrictedForward, .restrictedForwardInfo:
             return NugramSettingsSection.general.rawValue
         }
     }
@@ -68,18 +88,38 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
             return 4
         case .ghostModeInfo:
             return 5
-        case .disableNumberRounding:
+        case .unlimitedPins:
             return 6
-        case .disableNumberRoundingInfo:
+        case .unlimitedPinsInfo:
             return 7
-        case .zalgoRemover:
+        case .unlimitedFolders:
             return 8
-        case .zalgoRemoverInfo:
+        case .unlimitedFoldersInfo:
             return 9
-        case .restrictedForward:
+        case .unlimitedLogins:
             return 10
-        case .restrictedForwardInfo:
+        case .unlimitedLoginsInfo:
             return 11
+        case .disableNumberRounding:
+            return 12
+        case .disableNumberRoundingInfo:
+            return 13
+        case .timeWithSeconds:
+            return 14
+        case .timeWithSecondsInfo:
+            return 15
+        case .hidePhoneNumber:
+            return 16
+        case .hidePhoneNumberInfo:
+            return 17
+        case .zalgoRemover:
+            return 18
+        case .zalgoRemoverInfo:
+            return 19
+        case .restrictedForward:
+            return 20
+        case .restrictedForwardInfo:
+            return 21
         }
     }
     
@@ -108,12 +148,42 @@ private enum NugramSettingsControllerEntry: ItemListNodeEntry {
             })
         case .ghostModeInfo:
             return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_GhostModeInfo), sectionId: self.section)
+        case let .unlimitedPins(value):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: presentationData.strings.Nugram_UnlimitedPins, value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateUnlimitedPins(value)
+            })
+        case .unlimitedPinsInfo:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_UnlimitedPinsInfo), sectionId: self.section)
+        case let .unlimitedFolders(value):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: presentationData.strings.Nugram_UnlimitedFolders, value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateUnlimitedFolders(value)
+            })
+        case .unlimitedFoldersInfo:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_UnlimitedFoldersInfo), sectionId: self.section)
+        case let .unlimitedLogins(value):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: presentationData.strings.Nugram_UnlimitedLogins, value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateUnlimitedLogins(value)
+            })
+        case .unlimitedLoginsInfo:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_UnlimitedLoginsInfo), sectionId: self.section)
         case let .disableNumberRounding(value):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: presentationData.strings.Nugram_DisableNumberRounding, value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateDisableNumberRounding(value)
             })
         case .disableNumberRoundingInfo:
             return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_DisableNumberRoundingInfo), sectionId: self.section)
+        case let .timeWithSeconds(value):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: presentationData.strings.Nugram_TimeWithSeconds, value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateTimeWithSeconds(value)
+            })
+        case .timeWithSecondsInfo:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_TimeWithSecondsInfo), sectionId: self.section)
+        case let .hidePhoneNumber(value):
+            return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: presentationData.strings.Nugram_HidePhoneNumber, value: value, sectionId: self.section, style: .blocks, updated: { value in
+                arguments.updateHidePhoneNumber(value)
+            })
+        case .hidePhoneNumberInfo:
+            return ItemListTextItem(presentationData: presentationData, text: .plain(presentationData.strings.Nugram_HidePhoneNumberInfo), sectionId: self.section)
         case let .zalgoRemover(value):
             return ItemListSwitchItem(presentationData: presentationData, systemStyle: .glass, title: presentationData.strings.Nugram_ZalgoRemover, value: value, sectionId: self.section, style: .blocks, updated: { value in
                 arguments.updateZalgoRemover(value)
@@ -148,6 +218,12 @@ private func nugramSettingsControllerEntries(mode: NugramSettingsMode, settings:
         return [
             .ghostMode(settings.nugramGhostMode),
             .ghostModeInfo,
+            .unlimitedPins(settings.nugramUnlimitedPins),
+            .unlimitedPinsInfo,
+            .unlimitedFolders(settings.nugramUnlimitedFolders),
+            .unlimitedFoldersInfo,
+            .unlimitedLogins(settings.nugramUnlimitedLogins),
+            .unlimitedLoginsInfo,
             .zalgoRemover(settings.nugramZalgoRemover),
             .zalgoRemoverInfo,
             .restrictedForward(settings.nugramRestrictedForward),
@@ -156,7 +232,11 @@ private func nugramSettingsControllerEntries(mode: NugramSettingsMode, settings:
     case .appearance:
         return [
             .disableNumberRounding(settings.nugramDisableNumberRounding),
-            .disableNumberRoundingInfo
+            .disableNumberRoundingInfo,
+            .timeWithSeconds(settings.nugramTimeWithSeconds),
+            .timeWithSecondsInfo,
+            .hidePhoneNumber(settings.nugramHidePhoneNumber),
+            .hidePhoneNumberInfo
         ]
     }
 }
@@ -179,11 +259,51 @@ private func nugramSettingsController(context: AccountContext, mode: NugramSetti
                 return settings
             }).start()
         },
+        updateUnlimitedPins: { value in
+            nugramUnlimitedPinsPersistEnabled(value)
+            let _ = updateExperimentalUISettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.nugramUnlimitedPins = value
+                return settings
+            }).start()
+        },
+        updateUnlimitedFolders: { value in
+            nugramUnlimitedFoldersPersistEnabled(value)
+            let _ = updateExperimentalUISettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.nugramUnlimitedFolders = value
+                return settings
+            }).start()
+        },
+        updateUnlimitedLogins: { value in
+            nugramUnlimitedLoginsPersistEnabled(value)
+            let _ = updateExperimentalUISettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.nugramUnlimitedLogins = value
+                return settings
+            }).start()
+        },
         updateDisableNumberRounding: { value in
             nugramDisableNumberRoundingPersistEnabled(value)
             let _ = updateExperimentalUISettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
                 var settings = settings
                 settings.nugramDisableNumberRounding = value
+                return settings
+            }).start()
+        },
+        updateTimeWithSeconds: { value in
+            nugramTimeWithSecondsPersistEnabled(value)
+            let _ = updateExperimentalUISettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.nugramTimeWithSeconds = value
+                return settings
+            }).start()
+        },
+        updateHidePhoneNumber: { value in
+            nugramHidePhoneNumberPersistEnabled(value)
+            let _ = updateExperimentalUISettingsInteractively(accountManager: context.sharedContext.accountManager, { settings in
+                var settings = settings
+                settings.nugramHidePhoneNumber = value
                 return settings
             }).start()
         },

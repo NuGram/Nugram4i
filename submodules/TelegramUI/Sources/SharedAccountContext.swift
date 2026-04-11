@@ -509,7 +509,12 @@ public final class SharedAccountContextImpl: SharedAccountContext {
         let immediateExperimentalUISettingsValue = self.immediateExperimentalUISettingsValue
         let _ = immediateExperimentalUISettingsValue.swap(initialPresentationDataAndSettings.experimentalUISettings)
         nugramGhostModePersistEnabled(initialPresentationDataAndSettings.experimentalUISettings.nugramGhostMode)
+        nugramUnlimitedPinsPersistEnabled(initialPresentationDataAndSettings.experimentalUISettings.nugramUnlimitedPins)
+        nugramUnlimitedFoldersPersistEnabled(initialPresentationDataAndSettings.experimentalUISettings.nugramUnlimitedFolders)
+        nugramUnlimitedLoginsPersistEnabled(initialPresentationDataAndSettings.experimentalUISettings.nugramUnlimitedLogins)
         nugramDisableNumberRoundingPersistEnabled(initialPresentationDataAndSettings.experimentalUISettings.nugramDisableNumberRounding)
+        nugramTimeWithSecondsPersistEnabled(initialPresentationDataAndSettings.experimentalUISettings.nugramTimeWithSeconds)
+        nugramHidePhoneNumberPersistEnabled(initialPresentationDataAndSettings.experimentalUISettings.nugramHidePhoneNumber)
         
         GlassBackgroundView.useCustomGlassImpl = immediateExperimentalUISettingsValue.with({ $0.fakeGlass })
         
@@ -518,7 +523,12 @@ public final class SharedAccountContextImpl: SharedAccountContext {
             if let settings = sharedData.entries[ApplicationSpecificSharedDataKeys.experimentalUISettings]?.get(ExperimentalUISettings.self) {
                 let _ = immediateExperimentalUISettingsValue.swap(settings)
                 nugramGhostModePersistEnabled(settings.nugramGhostMode)
+                nugramUnlimitedPinsPersistEnabled(settings.nugramUnlimitedPins)
+                nugramUnlimitedFoldersPersistEnabled(settings.nugramUnlimitedFolders)
+                nugramUnlimitedLoginsPersistEnabled(settings.nugramUnlimitedLogins)
                 nugramDisableNumberRoundingPersistEnabled(settings.nugramDisableNumberRounding)
+                nugramTimeWithSecondsPersistEnabled(settings.nugramTimeWithSeconds)
+                nugramHidePhoneNumberPersistEnabled(settings.nugramHidePhoneNumber)
                 
                 flatBuffers_checkedGet = settings.checkSerializedData
                 GlassBackgroundView.useCustomGlassImpl = settings.fakeGlass

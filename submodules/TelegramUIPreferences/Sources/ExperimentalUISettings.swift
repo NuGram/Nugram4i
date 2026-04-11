@@ -73,7 +73,12 @@ public struct ExperimentalUISettings: Codable, Equatable {
     public var forceClearGlass: Bool
     public var debugRipple: Bool
     public var nugramGhostMode: Bool
+    public var nugramUnlimitedPins: Bool
+    public var nugramUnlimitedFolders: Bool
+    public var nugramUnlimitedLogins: Bool
     public var nugramDisableNumberRounding: Bool
+    public var nugramTimeWithSeconds: Bool
+    public var nugramHidePhoneNumber: Bool
     public var nugramZalgoRemover: Bool
     public var nugramRestrictedForward: Bool
     
@@ -127,7 +132,12 @@ public struct ExperimentalUISettings: Codable, Equatable {
             forceClearGlass: false,
             debugRipple: false,
             nugramGhostMode: false,
+            nugramUnlimitedPins: false,
+            nugramUnlimitedFolders: false,
+            nugramUnlimitedLogins: true,
             nugramDisableNumberRounding: false,
+            nugramTimeWithSeconds: false,
+            nugramHidePhoneNumber: false,
             nugramZalgoRemover: false,
             nugramRestrictedForward: false
         )
@@ -182,7 +192,12 @@ public struct ExperimentalUISettings: Codable, Equatable {
         forceClearGlass: Bool,
         debugRipple: Bool,
         nugramGhostMode: Bool,
+        nugramUnlimitedPins: Bool,
+        nugramUnlimitedFolders: Bool,
+        nugramUnlimitedLogins: Bool,
         nugramDisableNumberRounding: Bool,
+        nugramTimeWithSeconds: Bool,
+        nugramHidePhoneNumber: Bool,
         nugramZalgoRemover: Bool,
         nugramRestrictedForward: Bool
     ) {
@@ -234,7 +249,12 @@ public struct ExperimentalUISettings: Codable, Equatable {
         self.forceClearGlass = forceClearGlass
         self.debugRipple = debugRipple
         self.nugramGhostMode = nugramGhostMode
+        self.nugramUnlimitedPins = nugramUnlimitedPins
+        self.nugramUnlimitedFolders = nugramUnlimitedFolders
+        self.nugramUnlimitedLogins = nugramUnlimitedLogins
         self.nugramDisableNumberRounding = nugramDisableNumberRounding
+        self.nugramTimeWithSeconds = nugramTimeWithSeconds
+        self.nugramHidePhoneNumber = nugramHidePhoneNumber
         self.nugramZalgoRemover = nugramZalgoRemover
         self.nugramRestrictedForward = nugramRestrictedForward
     }
@@ -290,7 +310,12 @@ public struct ExperimentalUISettings: Codable, Equatable {
         self.forceClearGlass = try container.decodeIfPresent(Bool.self, forKey: "forceClearGlass") ?? false
         self.debugRipple = try container.decodeIfPresent(Bool.self, forKey: "debugRipple") ?? false
         self.nugramGhostMode = try container.decodeIfPresent(Bool.self, forKey: "nugramGhostMode") ?? false
+        self.nugramUnlimitedPins = try container.decodeIfPresent(Bool.self, forKey: "nugramUnlimitedPins") ?? false
+        self.nugramUnlimitedFolders = try container.decodeIfPresent(Bool.self, forKey: "nugramUnlimitedFolders") ?? false
+        self.nugramUnlimitedLogins = try container.decodeIfPresent(Bool.self, forKey: "nugramUnlimitedLogins") ?? true
         self.nugramDisableNumberRounding = try container.decodeIfPresent(Bool.self, forKey: "nugramDisableNumberRounding") ?? false
+        self.nugramTimeWithSeconds = try container.decodeIfPresent(Bool.self, forKey: "nugramTimeWithSeconds") ?? false
+        self.nugramHidePhoneNumber = try container.decodeIfPresent(Bool.self, forKey: "nugramHidePhoneNumber") ?? false
         self.nugramZalgoRemover = try container.decodeIfPresent(Bool.self, forKey: "nugramZalgoRemover") ?? false
         self.nugramRestrictedForward = try container.decodeIfPresent(Bool.self, forKey: "nugramRestrictedForward") ?? false
     }
@@ -346,7 +371,12 @@ public struct ExperimentalUISettings: Codable, Equatable {
         try container.encodeIfPresent(self.forceClearGlass, forKey: "forceClearGlass")
         try container.encodeIfPresent(self.debugRipple, forKey: "debugRipple")
         try container.encodeIfPresent(self.nugramGhostMode, forKey: "nugramGhostMode")
+        try container.encodeIfPresent(self.nugramUnlimitedPins, forKey: "nugramUnlimitedPins")
+        try container.encodeIfPresent(self.nugramUnlimitedFolders, forKey: "nugramUnlimitedFolders")
+        try container.encodeIfPresent(self.nugramUnlimitedLogins, forKey: "nugramUnlimitedLogins")
         try container.encodeIfPresent(self.nugramDisableNumberRounding, forKey: "nugramDisableNumberRounding")
+        try container.encodeIfPresent(self.nugramTimeWithSeconds, forKey: "nugramTimeWithSeconds")
+        try container.encodeIfPresent(self.nugramHidePhoneNumber, forKey: "nugramHidePhoneNumber")
         try container.encodeIfPresent(self.nugramZalgoRemover, forKey: "nugramZalgoRemover")
         try container.encodeIfPresent(self.nugramRestrictedForward, forKey: "nugramRestrictedForward")
     }

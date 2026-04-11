@@ -537,7 +537,7 @@ public final class PeerSelectionControllerImpl: ViewController, PeerSelectionCon
                     selectedEntryId = .all
                 }
             }
-            let filtersLimit = isPremium == false ? limits.maxFoldersCount : nil
+            let filtersLimit = (isPremium == false && !nugramUnlimitedFoldersEnabled()) ? limits.maxFoldersCount : nil
             strongSelf.tabContainerData = (resolvedItems, false, filtersLimit)
             var availableFilters: [ChatListContainerNodeFilter] = []
             var hasAllChats = false

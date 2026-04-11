@@ -1200,6 +1200,10 @@ private extension MutableChatListEntry {
             return .hole(hole.index)
         }
     }
+    
+    var isPinned: Bool {
+        return self.entryIndex.index.pinningIndex != nil
+    }
 }
 
 private struct OrderedChatListViewEntries {
@@ -1532,9 +1536,6 @@ struct ChatListViewState {
         
         var result: [(ChatListViewSpace, MutableChatListEntry)] = []
         
-        var sampledHoleIndices: [Int] = []
-        var sampledAnchorBoundaryIndex: Int?
-        
         var sampledHoleChatListIndices = Set<ChatListIndex>()
         
         let directions = [combinedSpacesAndIndicesByDirection.lowerOrAtAnchor, combinedSpacesAndIndicesByDirection.higherThanAnchor]
@@ -1547,10 +1548,6 @@ struct ChatListViewState {
                     entry = self.stateBySpace[space]!.orderedEntries.lowerOrAtAnchor[listIndex]
                 } else {
                     entry = self.stateBySpace[space]!.orderedEntries.higherThanAnchor[listIndex]
-                }
-                
-                if entry.entryIndex >= self.anchorIndex {
-                    sampledAnchorBoundaryIndex = result.count
                 }
                 
                 switch entry {
@@ -1738,12 +1735,38 @@ struct ChatListViewState {
                 case .HoleEntry:
                     if !sampledHoleChatListIndices.contains(entry.index) {
                         sampledHoleChatListIndices.insert(entry.index)
-                        sampledHoleIndices.append(result.count)
-                        
                         result.append((space, entry))
                     }
                 }
             }
+        }
+        
+        if !result.isEmpty {
+            var dedupedByEntity: [MutableChatListEntryEntityId: (ChatListViewSpace, MutableChatListEntry)] = [:]
+            for item in result {
+                let preferredPinnedState: Bool
+                switch item.1.entityId {
+                case let .peer(peerId):
+                    preferredPinnedState = postbox.chatListTable.getPeerChatListIndex(peerId: peerId)?.1.pinningIndex != nil
+                case .hole:
+                    preferredPinnedState = item.1.isPinned
+                }
+                
+                if let current = dedupedByEntity[item.1.entityId] {
+                    let currentEntry = current.1
+                    let candidateEntry = item.1
+                    let currentMatchesPreferred = currentEntry.isPinned == preferredPinnedState
+                    let candidateMatchesPreferred = candidateEntry.isPinned == preferredPinnedState
+                    if candidateMatchesPreferred && !currentMatchesPreferred {
+                        dedupedByEntity[item.1.entityId] = item
+                    } else if candidateMatchesPreferred == currentMatchesPreferred && candidateEntry.entryIndex < currentEntry.entryIndex {
+                        dedupedByEntity[item.1.entityId] = item
+                    }
+                } else {
+                    dedupedByEntity[item.1.entityId] = item
+                }
+            }
+            result = Array(dedupedByEntity.values).sorted(by: { $0.1.entryIndex < $1.1.entryIndex })
         }
         
         let allIndices = result.map { $0.1.entryIndex }
@@ -1762,33 +1785,22 @@ struct ChatListViewState {
                 }
             }
             result = updatedResult
-            
-            let allIndices = result.map { $0.1.entryIndex }
-            let allIndicesSorted = allIndices.sorted()
-            for i in 0 ..< allIndicesSorted.count {
-                assert(allIndicesSorted[i] == allIndices[i])
-            }
-            assert(Set(allIndices).count == allIndices.count)
-            
-            assert(false)
         }
         
+        let sampledAnchorBoundaryIndex = result.firstIndex(where: { $0.1.entryIndex >= self.anchorIndex })
+        let sampledHoleIndices = result.enumerated().compactMap { index, item -> Int? in
+            if case .HoleEntry = item.1 {
+                return index
+            } else {
+                return nil
+            }
+        }
         var sampledHoleIndex: Int?
         if !sampledHoleIndices.isEmpty {
             if let sampledAnchorBoundaryIndex = sampledAnchorBoundaryIndex {
-                var found = false
-                for i in 0 ..< sampledHoleIndices.count {
-                    if i >= sampledAnchorBoundaryIndex {
-                        sampledHoleIndex = sampledHoleIndices[i]
-                        found = true
-                        break
-                    }
-                }
-                if !found {
-                    sampledHoleIndex = sampledHoleIndices.first
-                }
-            } else if let index = sampledHoleIndices.first {
-                sampledHoleIndex = index
+                sampledHoleIndex = sampledHoleIndices.first(where: { $0 >= sampledAnchorBoundaryIndex }) ?? sampledHoleIndices.first
+            } else {
+                sampledHoleIndex = sampledHoleIndices.first
             }
         }
         

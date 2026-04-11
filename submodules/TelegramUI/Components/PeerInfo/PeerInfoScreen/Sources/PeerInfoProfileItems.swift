@@ -128,16 +128,30 @@ func infoItems(data: PeerInfoScreenData?, context: AccountContext, presentationD
         }
         
         if let phone = user.phone {
-            let formattedPhone = formatPhoneNumber(context: context, number: phone)
+            let hidden = nugramHidePhoneNumberEnabled()
             let label: String
-            if formattedPhone.hasPrefix("+888 ") {
-                label = presentationData.strings.UserInfo_AnonymousNumberLabel
+            let text: String
+            if hidden {
+                label = presentationData.strings.Settings_PhoneNumber
+                text = presentationData.strings.PhoneHidden
             } else {
-                label = presentationData.strings.ContactInfo_PhoneLabelMobile
+                let formattedPhone = formatPhoneNumber(context: context, number: phone)
+                text = formattedPhone
+                if formattedPhone.hasPrefix("+888 ") {
+                    label = presentationData.strings.UserInfo_AnonymousNumberLabel
+                } else {
+                    label = presentationData.strings.ContactInfo_PhoneLabelMobile
+                }
             }
-            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemPhoneNumber, label: label, text: formattedPhone, textColor: .accent, action: { node, progress in
+            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemPhoneNumber, label: label, text: text, textColor: hidden ? .primary : .accent, action: { node, progress in
+                guard !hidden else {
+                    return
+                }
                 interaction.openPhone(phone, node, nil, progress)
             }, longTapAction: nil, contextAction: { node, gesture, _ in
+                guard !hidden else {
+                    return
+                }
                 interaction.openPhone(phone, node, gesture, nil)
             }, requestLayout: { animated in
                 interaction.requestLayout(animated)

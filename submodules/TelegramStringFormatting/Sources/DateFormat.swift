@@ -22,7 +22,7 @@ public func stringForMediumCompactDate(timestamp: Int32, strings: PresentationSt
     
     let timeString: String
     if withTime {
-        timeString = " \(stringForShortTimestamp(hours: Int32(timeinfo.tm_hour), minutes: Int32(timeinfo.tm_min), dateTimeFormat: dateTimeFormat))"
+        timeString = " \(stringForShortTimestamp(hours: Int32(timeinfo.tm_hour), minutes: Int32(timeinfo.tm_min), seconds: nugramTimeWithSecondsEnabled() ? Int32(timeinfo.tm_sec) : nil, dateTimeFormat: dateTimeFormat))"
     } else {
         timeString = ""
     }
@@ -57,7 +57,7 @@ public func stringForMediumDate(timestamp: Int32, strings: PresentationStrings, 
     }
     
     if withTime {
-        let timeString = stringForShortTimestamp(hours: Int32(timeinfo.tm_hour), minutes: Int32(timeinfo.tm_min), dateTimeFormat: dateTimeFormat)
+        let timeString = stringForShortTimestamp(hours: Int32(timeinfo.tm_hour), minutes: Int32(timeinfo.tm_min), seconds: nugramTimeWithSecondsEnabled() ? Int32(timeinfo.tm_sec) : nil, dateTimeFormat: dateTimeFormat)
         return strings.Time_MediumDate(dateString, timeString).string
     } else {
         return dateString
@@ -71,7 +71,7 @@ public func stringForFullDate(timestamp: Int32, strings: PresentationStrings, da
     
     let dayString = "\(timeinfo.tm_mday)"
     let yearString = "\(2000 + timeinfo.tm_year - 100)"
-    let timeString = stringForShortTimestamp(hours: Int32(timeinfo.tm_hour), minutes: Int32(timeinfo.tm_min), dateTimeFormat: dateTimeFormat)
+    let timeString = stringForShortTimestamp(hours: Int32(timeinfo.tm_hour), minutes: Int32(timeinfo.tm_min), seconds: nugramTimeWithSecondsEnabled() ? Int32(timeinfo.tm_sec) : nil, dateTimeFormat: dateTimeFormat)
     
     let monthFormat: (String, String, String) -> PresentationStrings.FormattedString
     switch timeinfo.tm_mon + 1 {

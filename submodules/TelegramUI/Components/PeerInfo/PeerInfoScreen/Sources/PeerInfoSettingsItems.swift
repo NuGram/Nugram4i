@@ -426,7 +426,17 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
     }))
     
     if let user = data.peer as? TelegramUser {
-        items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPhoneNumber, label: .text(user.phone.flatMap({ formatPhoneNumber(context: context, number: $0) }) ?? ""), text: presentationData.strings.Settings_PhoneNumber, action: {
+        let hidden = nugramHidePhoneNumberEnabled()
+        let phoneText: String
+        if hidden {
+            phoneText = presentationData.strings.PhoneHidden
+        } else {
+            phoneText = user.phone.flatMap({ formatPhoneNumber(context: context, number: $0) }) ?? ""
+        }
+        items[.info]!.append(PeerInfoScreenDisclosureItem(id: ItemPhoneNumber, label: .text(phoneText), text: presentationData.strings.Settings_PhoneNumber, action: {
+            guard !hidden else {
+                return
+            }
             interaction.openSettings(.phoneNumber)
         }))
     }

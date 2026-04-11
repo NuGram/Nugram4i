@@ -648,6 +648,7 @@ func chatListNodeEntriesForView(view: EngineChatList, state: ChatListNodeState, 
     let filteredAdditionalItemEntries = view.additionalItems.filter { item -> Bool in
         return item.item.renderedPeer.peerId != state.hiddenPsaPeerId
     }
+    let additionalItemPeerIds = Set(filteredAdditionalItemEntries.map { $0.item.renderedPeer.peerId })
     
     var foundPeerIds = Set<EnginePeer.Id>()
     for peer in foundPeers {
@@ -675,8 +676,13 @@ func chatListNodeEntriesForView(view: EngineChatList, state: ChatListNodeState, 
             threadId = threadIdValue
         }
         
-        if let savedMessagesPeer = savedMessagesPeer, let peerId = peerId, savedMessagesPeer.id == peerId || foundPeerIds.contains(peerId) {
-            continue loop
+        if let peerId = peerId {
+            if let savedMessagesPeer = savedMessagesPeer, savedMessagesPeer.id == peerId || foundPeerIds.contains(peerId) {
+                continue loop
+            }
+            if savedMessagesPeer == nil && additionalItemPeerIds.contains(peerId) {
+                continue loop
+            }
         }
         if let peerId = peerId, state.pendingRemovalItemIds.contains(ChatListNodeState.ItemId(peerId: peerId, threadId: threadId)) {
             continue loop
